@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Roblox Trading & Cases Hub</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Эффект Конфетти -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         * {
@@ -141,6 +140,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            cursor: pointer;
         }
 
         .case-card.free-case-card {
@@ -191,16 +191,49 @@
             cursor: not-allowed;
         }
 
-        /* Анимация прокрутки кейсов */
+        .count-selector {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin: 10px 0;
+        }
+
+        .count-btn {
+            background: #08121e;
+            border: 1px solid #00b4d8;
+            color: #90e0ef;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .count-btn.active {
+            background: #00b4d8;
+            color: #fff;
+        }
+
+        /* Динамические контейнеры под анимации рулеток */
+        #roulettes-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 320px;
+            overflow-y: auto;
+            margin: 10px 0;
+            padding-right: 4px;
+        }
+
         .roulette-container {
             position: relative;
             width: 100%;
-            height: 110px;
+            height: 85px;
             background: #08121e;
             border: 2px solid #00b4d8;
             border-radius: 14px;
             overflow: hidden;
-            margin: 14px 0;
+            flex-shrink: 0;
         }
 
         .roulette-pointer {
@@ -216,50 +249,166 @@
         .roulette-track {
             display: flex;
             position: absolute;
-            left: 0; top: 10px;
-            height: 90px;
-            transition: transform 5s cubic-bezier(0.1, 1, 0.1, 1);
+            left: 0; top: 8px;
+            height: 70px;
+            transition: transform 4.5s cubic-bezier(0.15, 0.9, 0.15, 1);
         }
 
         .roulette-item {
-            min-width: 85px;
-            height: 90px;
+            min-width: 70px;
+            height: 70px;
             background: #132238;
             border: 1px solid #00b4d8;
             border-radius: 10px;
-            margin: 0 4px;
+            margin: 0 3px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 4px;
+            padding: 2px;
         }
 
-        .roulette-item img { width: 45px; height: 45px; object-fit: contain; }
-        .roulette-item span { font-size: 10px; color: #72efdd; font-weight: bold; margin-top: 2px; }
+        .roulette-item img { width: 35px; height: 35px; object-fit: contain; }
+        .roulette-item span { font-size: 8px; color: #72efdd; font-weight: bold; margin-top: 2px; text-align: center; }
 
-        /* Список вероятностей выпадения */
-        .case-drop-list {
+        .drop-grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
             max-height: 180px;
             overflow-y: auto;
-            text-align: left;
             margin: 10px 0;
-            background: #08121e;
+            padding-right: 4px;
+        }
+
+        .drop-card-square {
+            background: #ffffff;
+            border-radius: 14px;
             padding: 8px;
-            border-radius: 10px;
-            border: 1px solid #00b4d8;
-        }
-
-        .case-drop-item {
+            position: relative;
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: center;
-            font-size: 11px;
-            padding: 4px 0;
-            border-bottom: 1px solid #132238;
+            justify-content: space-between;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            min-height: 130px;
         }
 
-        /* Апгрейдер */
+        .drop-badge-rarity {
+            position: absolute;
+            top: 6px; left: 6px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 8px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #fff;
+        }
+
+        .rarity-rare { background-color: #2ecc71; }
+        .rarity-legendary { background-color: #e74c3c; }
+        .rarity-godly { background-color: #9b59b6; }
+
+        .drop-badge-value {
+            position: absolute;
+            top: 6px; right: 6px;
+            background: #f1c40f;
+            color: #000;
+            padding: 2px 5px;
+            border-radius: 8px;
+            font-size: 8px;
+            font-weight: 800;
+        }
+
+        .drop-card-title {
+            color: #1e293b;
+            font-size: 10px;
+            font-weight: 800;
+            margin-top: 18px;
+            text-align: center;
+        }
+
+        .drop-card-img {
+            width: 45px; height: 45px;
+            object-fit: contain;
+            margin: 4px 0;
+        }
+
+        /* Общий счетчик инвентаря */
+        .inventory-summary {
+            background: linear-gradient(135deg, #132238, #0a1726);
+            border: 2px solid #72efdd;
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 12px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(114, 239, 221, 0.2);
+        }
+
+        .inventory-summary-title {
+            font-size: 12px;
+            color: #90e0ef;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .inventory-summary-value {
+            font-size: 22px;
+            font-weight: 800;
+            color: #72efdd;
+            margin-top: 2px;
+        }
+
+        /* Блок лучшего дропа в профиле */
+        .best-drop-card {
+            background: #08121e;
+            border: 1px solid #00b4d8;
+            border-radius: 12px;
+            padding: 10px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-align: left;
+        }
+
+        .best-drop-img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+        }
+
+        .notification-banner {
+            display: none;
+            width: 100%;
+            max-width: 440px;
+            background: #1e1b2e;
+            border: 1px solid #3b3554;
+            border-radius: 16px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+            animation: fadeIn 0.4s ease;
+        }
+
+        .notification-title { font-size: 14px; font-weight: bold; color: #ffffff; margin-bottom: 4px; }
+        .notification-sub { font-size: 13px; color: #e2e8f0; margin-bottom: 10px; }
+        .notification-btn {
+            background: linear-gradient(90deg, #2b2640, #383052);
+            border: 1px solid #524675;
+            color: #ffffff;
+            padding: 10px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 13px;
+            width: 100%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
         .upgrader-box {
             background: #132238;
             border: 2px solid #00b4d8;
@@ -296,14 +445,12 @@
 
         .wheel-wrapper {
             position: relative;
-            width: 150px;
-            height: 150px;
+            width: 150px; height: 150px;
             margin: 0 auto 14px auto;
         }
 
         .wheel-circle {
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             border-radius: 50%;
             background: conic-gradient(#72efdd 0deg, #ff4d4d 0deg 360deg);
             border: 4px solid #00b4d8;
@@ -313,8 +460,7 @@
         }
 
         .wheel-inner {
-            width: 105px;
-            height: 105px;
+            width: 105px; height: 105px;
             border-radius: 50%;
             background: #08121e;
             display: flex;
@@ -345,7 +491,6 @@
             border-bottom: 12px solid #ffffff;
         }
 
-        /* Игра Шарики (Plinko) */
         .balls-game-container {
             background: #132238;
             border: 2px solid #00b4d8;
@@ -364,12 +509,11 @@
 
         .balls-controls {
             display: flex;
+            flex-direction: column;
             gap: 8px;
-            justify-content: center;
             align-items: center;
         }
 
-        /* Модальные окна */
         .modal {
             display: none;
             position: fixed;
@@ -389,21 +533,20 @@
             border-radius: 20px;
             padding: 18px;
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             max-height: 85vh;
             overflow-y: auto;
             text-align: center;
         }
 
         .profile-avatar {
-            width: 90px; height: 90px;
+            width: 80px; height: 80px;
             border-radius: 50%;
             border: 3px solid #00b4d8;
             object-fit: cover;
             margin-bottom: 10px;
         }
 
-        /* Нижняя навигация */
         .navbar {
             position: fixed;
             bottom: 0; left: 0; right: 0;
@@ -440,19 +583,34 @@
             background: #08121e;
             color: #fff;
             text-align: center;
-            margin-top: 8px;
+            margin-top: 6px;
+        }
+
+        .timer-display {
+            font-size: 24px;
+            font-weight: bold;
+            color: #f59e0b;
+            background: #08121e;
+            padding: 8px;
+            border-radius: 10px;
+            border: 1px dashed #f59e0b;
+            margin: 10px 0;
         }
     </style>
 </head>
 <body>
 
-    <!-- Переключатель игр (Используется на вкладках Кейсы и Магазин) -->
+    <div class="notification-banner" id="free-case-banner">
+        <div class="notification-title">Вам снова доступен бесплатный кейс!</div>
+        <div class="notification-sub">Откройте его, пока он не пропал 🔥</div>
+        <button class="notification-btn" onclick="claimFreeCaseNotification()">🎁 Забрать подарок</button>
+    </div>
+
     <div class="mode-selector" id="game-mode-bar">
         <button class="mode-btn active" id="mode-adopt" onclick="switchGameMode('adopt')">🐾 Adopt Me</button>
         <button class="mode-btn" id="mode-mm2" onclick="switchGameMode('mm2')">🔪 MM2</button>
     </div>
 
-    <!-- Верхняя панель -->
     <div class="top-bar">
         <div class="balance-container">
             <div class="balance-box">Баланс: <span id="coins">1000</span> 🪙</div>
@@ -461,20 +619,20 @@
         <button class="mode-btn" style="padding: 6px 12px; font-size: 12px; flex: none;" onclick="switchTab('profile-tab')">👤 Профиль</button>
     </div>
 
-    <!-- Вкладка 1: Кейсы -->
+    <!-- 1. Кейсы -->
     <div id="cases-tab" class="page-tab active">
         <div class="cases-grid" id="cases-container"></div>
     </div>
 
-    <!-- Вкладка 2: Магазин -->
+    <!-- 2. Магазин -->
     <div id="shop-tab" class="page-tab">
         <div class="search-box">
-            <input type="text" class="search-input" id="shop-search" placeholder="🔍 Быстрый поиск..." oninput="filterShop()">
+            <input type="text" class="search-input" id="shop-search" placeholder="🔍 Поиск по 500+ предметам..." oninput="filterShop()">
         </div>
         <div class="items-grid" id="shop-container"></div>
     </div>
 
-    <!-- Вкладка 3: Единый Апгрейдер -->
+    <!-- 3. Апгрейдер -->
     <div id="upgrader-tab" class="page-tab">
         <div class="upgrader-box">
             <div class="upgrade-slots">
@@ -494,34 +652,53 @@
                 </div>
             </div>
 
+            <p style="font-size: 11px; color: #90e0ef; margin-bottom: 8px;">Максимальный шанс строго ограничен <b>75%</b></p>
             <button class="btn-open" onclick="runUpgrade()" style="font-size: 16px; padding: 12px;">Улучшить</button>
         </div>
     </div>
 
-    <!-- Вкладка 4: Шарики (Plinko) -->
+    <!-- 4. Plinko -->
     <div id="balls-tab" class="page-tab">
         <div class="balls-game-container">
-            <h3 style="color: #72efdd; margin-bottom: 6px;">🎈 Шарики Plinko</h3>
-            <p style="font-size: 11px; color: #caf0f8; margin-bottom: 10px;">В центре — супер-множитель <b>x10</b>!</p>
-            <canvas id="plinko-canvas" width="320" height="320"></canvas>
+            <h3 style="color: #72efdd; margin-bottom: 4px;">🎈 Пинко</h3>
+            <p style="font-size: 11px; color: #caf0f8; margin-bottom: 8px;">Запускайте до 5 шариков одновременно!</p>
+            
+            <canvas id="plinko-canvas" width="320" height="300"></canvas>
+            
             <div class="balls-controls">
-                <input type="number" id="ball-bet" class="input-field" value="100" style="width: 100px; margin: 0;" placeholder="Ставка">
-                <button class="btn-open" onclick="dropBall()" style="width: 140px;">Запустить</button>
+                <div style="display: flex; gap: 6px; align-items: center; width: 100%; justify-content: center;">
+                    <span style="font-size: 12px; color: #90e0ef;">Мячиков:</span>
+                    <div class="count-selector" style="margin:0;">
+                        <button class="count-btn active" id="pball-1" onclick="selectPlinkoBallCount(1)">1x</button>
+                        <button class="count-btn" id="pball-2" onclick="selectPlinkoBallCount(2)">2x</button>
+                        <button class="count-btn" id="pball-3" onclick="selectPlinkoBallCount(3)">3x</button>
+                        <button class="count-btn" id="pball-5" onclick="selectPlinkoBallCount(5)">5x</button>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 8px; width: 100%;">
+                    <input type="number" id="ball-bet" class="input-field" value="100" style="margin: 0; flex: 1;" placeholder="Ставка за 1 мяч">
+                    <button class="btn-open" onclick="dropBalls()" style="flex: 1;">Запустить</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Вкладка 5: Инвентарь -->
+    <!-- 5. Инвентарь -->
     <div id="inventory-tab" class="page-tab">
-        <h3 style="color: #00b4d8; text-align: center; margin-bottom: 12px; font-size: 16px;" id="inventory-title">🎒 Инвентарь (Adopt Me)</h3>
+        <div class="inventory-summary">
+            <div class="inventory-summary-title">Общая стоимость инвентаря</div>
+            <div class="inventory-summary-value" id="total-inventory-value">0 Value</div>
+        </div>
+        <h3 style="color: #00b4d8; text-align: center; margin-bottom: 12px; font-size: 16px;" id="inventory-title">🎒 Инвентарь</h3>
         <div class="items-grid" id="inventory-container"></div>
     </div>
 
-    <!-- Вкладка 6: Рефералы -->
+    <!-- 6. Рефералы -->
     <div id="ref-tab" class="page-tab">
         <div class="modal-content" style="max-width: 100%;">
             <h3 style="color: #72efdd; margin-bottom: 8px;">👥 Реферальная система</h3>
-            <p style="font-size: 12px; color: #caf0f8; margin-bottom: 14px;">Приглашайте друзей и получайте <b>5%</b> от каждого их пополнения баланса!</p>
+            <p style="font-size: 12px; color: #caf0f8; margin-bottom: 14px;">Приглашайте друзей и получайте <b>5%</b> от каждого пополнения!</p>
             
             <div style="background: #08121e; padding: 10px; border-radius: 12px; border: 1px solid #00b4d8; margin-bottom: 12px;">
                 <div style="font-size: 11px; color: #90e0ef;">Ваша ссылка:</div>
@@ -534,19 +711,28 @@
         </div>
     </div>
 
-    <!-- Вкладка 7: Профиль -->
+    <!-- 7. Профиль -->
     <div id="profile-tab" class="page-tab">
         <div class="modal-content" style="max-width: 100%;">
             <img class="profile-avatar" id="user-avatar" src="https://img.icons8.com/emoji/512/user-robot.png">
             <div style="font-size: 18px; font-weight: bold; margin-bottom: 8px;" id="user-nickname-display">Игрок</div>
             <p style="margin-bottom: 6px;">Открыто кейсов: <b id="cases-opened">0</b></p>
-            <p style="margin-bottom: 16px;">Баланс: <b id="profile-coins">1000</b> Coins</p>
+            <p style="margin-bottom: 12px;">Баланс: <b id="profile-coins">1000</b> Coins</p>
 
-            <h4 style="color: #90e0ef; font-size: 13px; margin-bottom: 6px;">Настройки</h4>
+            <div style="font-size: 12px; color: #90e0ef; text-align: left; margin-top: 8px;">👑 Лучший дроп:</div>
+            <div class="best-drop-card" id="best-drop-card">
+                <img class="best-drop-img" id="best-drop-img" src="https://img.icons8.com/isometric/512/treasure-chest.png">
+                <div>
+                    <div id="best-drop-title" style="font-size: 13px; font-weight: bold; color: #72efdd;">Нет дропа</div>
+                    <div id="best-drop-value" style="font-size: 11px; color: #90e0ef;">Value: 0</div>
+                </div>
+            </div>
+
+            <h4 style="color: #90e0ef; font-size: 13px; margin-top: 10px; margin-bottom: 6px;">Настройки</h4>
             <input type="text" class="input-field" id="nick-input" placeholder="Новый никнейм">
             
             <div style="margin-top: 10px; text-align: left;">
-                <label style="font-size: 12px; color: #90e0ef;">Загрузить фото из галереи:</label>
+                <label style="font-size: 12px; color: #90e0ef;">Аватар из галереи:</label>
                 <input type="file" id="avatar-file-input" accept="image/*" class="input-field" style="padding: 6px;">
             </div>
 
@@ -554,31 +740,44 @@
         </div>
     </div>
 
-    <!-- Модалка Открытия Кейса (Рулетка + Шансы) -->
+    <!-- Модалка Открытия Кейсов (Мульти-анимация) -->
     <div id="case-open-modal" class="modal">
         <div class="modal-content">
-            <div style="color: #00b4d8; font-weight: bold; font-size: 16px;" id="modal-case-title">Кейс</div>
+            <div style="color: #00b4d8; font-weight: bold; font-size: 18px;" id="modal-case-title">Кейс</div>
             
-            <!-- Анимация рулетки -->
-            <div class="roulette-container">
-                <div class="roulette-pointer"></div>
-                <div class="roulette-track" id="roulette-track"></div>
+            <div style="font-size: 12px; color: #90e0ef; margin-top: 6px;">Количество открытий:</div>
+            <div class="count-selector">
+                <button class="count-btn active" id="cspin-1" onclick="selectSpinCount(1)">1x</button>
+                <button class="count-btn" id="cspin-2" onclick="selectSpinCount(2)">2x</button>
+                <button class="count-btn" id="cspin-3" onclick="selectSpinCount(3)">3x</button>
+                <button class="count-btn" id="cspin-4" onclick="selectSpinCount(4)">4x</button>
+                <button class="count-btn" id="cspin-5" onclick="selectSpinCount(5)">5x</button>
             </div>
 
-            <div style="font-size: 12px; color: #90e0ef; text-align: left; font-weight: bold;">Возможный лут и шансы:</div>
-            <div class="case-drop-list" id="modal-case-drops"></div>
+            <!-- Контейнер с анимациями нескольких рулеток -->
+            <div id="roulettes-wrapper"></div>
 
-            <button class="btn-open" id="start-spin-btn" onclick="spinCase()" style="margin-top: 10px;">Открыть</button>
+            <div style="font-size: 14px; font-weight: 900; color: #ffffff; letter-spacing: 1px; margin-top: 8px; text-transform: uppercase;">ВОЗМОЖНЫЙ ДРОП</div>
+            <div style="width: 30px; height: 2px; background: #00b4d8; margin: 4px auto 8px auto;"></div>
+
+            <div class="drop-grid-container" id="modal-case-drops"></div>
+
+            <button class="btn-open" id="start-spin-btn" onclick="spinCaseMulti()" style="margin-top: 10px;">Открыть (<span id="total-price-display">0</span> Coins)</button>
             <button class="btn-open" onclick="closeModal('case-open-modal')" style="margin-top: 6px; background: #ff4d4d;">Закрыть</button>
         </div>
     </div>
 
-    <!-- Модалка Вывода Петов/Оружия -->
+    <!-- Модалка Вывода -->
     <div id="withdraw-modal" class="modal">
         <div class="modal-content">
             <div style="color: #72efdd; font-weight: bold; font-size: 16px; margin-bottom: 8px;">🚀 Вывод в Roblox</div>
             <p style="font-size: 12px; color: #caf0f8; margin-bottom: 10px;" id="withdraw-item-info">Вывод предмета</p>
             
+            <p style="font-size: 12px; color: #90e0ef;">Добавьте администратора в Roblox:</p>
+            <b style="color:#38bdf8; font-size: 18px; display: block; margin: 4px 0;">Gol5621</b>
+
+            <div class="timer-display" id="withdraw-timer">05:00</div>
+
             <input type="text" id="roblox-username-input" class="input-field" placeholder="Ваш Roblox Никнейм">
             
             <button class="btn-open" onclick="confirmWithdraw()" style="margin-top: 12px; background: #72efdd; color: #08121e;">Подтвердить вывод</button>
@@ -590,14 +789,14 @@
     <div id="deposit-modal" class="modal">
         <div class="modal-content">
             <div style="color: #00b4d8; font-weight: bold; font-size: 18px; margin-bottom: 10px;">💳 Пополнение баланса</div>
-            <p style="font-size: 12px; color: #caf0f8; margin-bottom: 12px;">Бесплатный тестовый баланс (рефереру зачислится 5%):</p>
-            <button class="btn-open" onclick="addFreeCoins(500)">+500 Coins</button>
-            <button class="btn-open" onclick="addFreeCoins(2000)" style="margin-top: 6px;">+2000 Coins</button>
+            <p style="font-size: 12px; color: #caf0f8; margin-bottom: 12px;">Выберете сумму для тестового пополнения:</p>
+            <button class="btn-open" onclick="addFreeCoins(1000)">+1 000 Coins</button>
+            <button class="btn-open" onclick="addFreeCoins(5000)" style="margin-top: 6px;">+5 000 Coins</button>
             <button class="btn-open" onclick="closeModal('deposit-modal')" style="margin-top: 12px; background: #ff4d4d;">Закрыть</button>
         </div>
     </div>
 
-    <!-- Модалка выбора в Апгрейдере -->
+    <!-- Модалка Выбора -->
     <div id="picker-modal" class="modal">
         <div class="modal-content">
             <div style="color: #00b4d8; font-weight: bold; font-size: 16px; margin-bottom: 12px;" id="picker-title">Выберите предмет</div>
@@ -606,7 +805,7 @@
         </div>
     </div>
 
-    <!-- Нижняя Навигация -->
+    <!-- Навигация -->
     <div class="navbar">
         <button class="nav-item active" onclick="switchTab('cases-tab', this)">
             <span style="font-size: 16px;">🎁</span> Кейсы
@@ -618,7 +817,7 @@
             <span style="font-size: 16px;">⚡</span> Апгрейд
         </button>
         <button class="nav-item" onclick="switchTab('balls-tab', this)">
-            <span style="font-size: 16px;">🎈</span> Шарики
+            <span style="font-size: 16px;">🎈</span> Пинко
         </button>
         <button class="nav-item" onclick="switchTab('inventory-tab', this)">
             <span style="font-size: 16px;">🎒</span> Инвентарь
@@ -632,12 +831,18 @@
     </div>
 
 <script>
+    const BOT_USERNAME = "playadoptroblox_bot";
+    const tg = window.Telegram ? window.Telegram.WebApp : null;
+    if (tg) tg.expand();
+
     let currentMode = "adopt";
     let coins = parseInt(localStorage.getItem("coins")) || 1000;
     let openedCount = parseInt(localStorage.getItem("openedCount")) || 0;
     
     let inventoryAdopt = JSON.parse(localStorage.getItem("inventoryAdopt")) || [];
     let inventoryMM2 = JSON.parse(localStorage.getItem("inventoryMM2")) || [];
+
+    let bestDrop = JSON.parse(localStorage.getItem("bestDrop")) || null;
 
     let userNick = localStorage.getItem("userNick") || "Игрок";
     let userAvatar = localStorage.getItem("userAvatar") || "https://img.icons8.com/emoji/512/user-robot.png";
@@ -649,42 +854,181 @@
     let selectedUpItem = null;
     let selectedTargetItem = null;
     let currentActiveCase = null;
+    let selectedSpinCount = 1;
+    let selectedPlinkoBallCount = 1;
+
     let withdrawIndex = null;
+    let withdrawTimerInterval = null;
 
-    // База предметов
-    const petBases = ["Dragon", "Unicorn", "Owl", "Cat", "Dog", "Turtle", "Kangaroo", "Parrot", "Crow", "Bat", "Shadow", "Frost", "Giraffe"];
-    const petPrefixes = ["Regular", "Neon", "Mega Neon", "Fly Ride", "Golden", "Diamond", "Shadow", "Frost"];
+    /* ГЕНЕРАЦИЯ БАЗЫ 500+ ПРЕДМЕТОВ С VALUE */
+    const adoptBasePets = [
+        { name: "Shadow Dragon", val: 12500, rarity: "godly" },
+        { name: "Bat Dragon", val: 10800, rarity: "godly" },
+        { name: "Giraffe", val: 8200, rarity: "godly" },
+        { name: "Frost Dragon", val: 6100, rarity: "godly" },
+        { name: "Owl", val: 4800, rarity: "godly" },
+        { name: "Parrot", val: 3900, rarity: "legendary" },
+        { name: "Crow", val: 3100, rarity: "legendary" },
+        { name: "Evil Unicorn", val: 2800, rarity: "legendary" },
+        { name: "Arctic Reindeer", val: 1900, rarity: "legendary" },
+        { name: "Monkey King", val: 1450, rarity: "legendary" },
+        { name: "Turtle", val: 950, rarity: "rare" },
+        { name: "Kangaroo", val: 780, rarity: "rare" },
+        { name: "Cow", val: 650, rarity: "rare" },
+        { name: "Strawberry Shortcake Bat Dragon", val: 1100, rarity: "legendary" },
+        { name: "Chocolate Chip Bat Dragon", val: 1250, rarity: "legendary" },
+        { name: "Vampire Dragon", val: 890, rarity: "legendary" },
+        { name: "Dancing Dragon", val: 540, rarity: "rare" },
+        { name: "Frost Fury", val: 480, rarity: "rare" },
+        { name: "Golden Rat", val: 320, rarity: "rare" },
+        { name: "Unicorn", val: 210, rarity: "rare" },
+        { name: "Dragon", val: 180, rarity: "rare" },
+        { name: "Griffin", val: 150, rarity: "rare" },
+        { name: "Golden Dragon", val: 220, rarity: "rare" },
+        { name: "Diamond Dragon", val: 310, rarity: "rare" },
+        { name: "Albino Monkey", val: 850, rarity: "legendary" },
+        { name: "King Bee", val: 290, rarity: "rare" },
+        { name: "Queen Bee", val: 620, rarity: "legendary" },
+        { name: "Frost Unicorn", val: 980, rarity: "legendary" },
+        { name: "Shadow Unicorn", val: 1150, rarity: "legendary" },
+        { name: "Phoenix", val: 420, rarity: "rare" },
+        { name: "Goldhorn", val: 390, rarity: "rare" },
+        { name: "Axolotl", val: 280, rarity: "rare" }
+    ];
+
+    const adoptVariants = [
+        "Regular", "Fly", "Ride", "Fly Ride (FR)", 
+        "Neon (N)", "Neon Fly (NF)", "Neon Ride (NR)", "Neon Fly Ride (NFR)", 
+        "Mega Neon (M)", "Mega Neon Fly (MF)", "Mega Neon Ride (MR)", "Mega Neon Fly Ride (MFR)",
+        "Rainbow Neon", "Golden Fly Ride", "Shadow Aura FR", "Cosmic MFR"
+    ];
+
     let adoptPets = [];
-    let idC = 1;
-    petPrefixes.forEach((prefix) => {
-        petBases.forEach((base) => {
-            adoptPets.push({ id: idC++, name: `${prefix} ${base}`, value: Math.floor(idC * 35 + 50), img: "https://img.icons8.com/emoji/512/dragon-emoji.png" });
-        });
-    });
+    let petId = 1;
 
-    const mm2Types = ["Knife", "Gun", "Scythe", "Revolver", "Dagger", "Crossbow", "Axe", "Sword"];
-    const mm2Skins = ["Corrupt", "Chroma", "Dark", "Light", "Elderwood", "Icebreaker", "Harvester", "Candleflame", "Bat", "Ghost", "Laser", "Lugers", "Slasher", "Blaster"];
-    let mm2Weapons = [];
-    let idM = 1;
-    mm2Skins.forEach((skin) => {
-        mm2Types.forEach((type) => {
-            mm2Weapons.push({
-                id: idM++,
-                name: `${skin} ${type}`,
-                value: Math.floor(idM * 40 + 60),
-                img: type.includes("Gun") || type.includes("Revolver") || type.includes("Crossbow") ? "https://img.icons8.com/isometric/512/gun.png" : "https://img.icons8.com/isometric/512/dagger.png"
+    adoptBasePets.forEach(base => {
+        adoptVariants.forEach((v, idx) => {
+            let mult = 1 + (idx * 0.65);
+            if (v.includes("Mega")) mult *= 2.4;
+            if (v.includes("Cosmic") || v.includes("Rainbow")) mult *= 3.0;
+            let finalVal = Math.floor(base.val * mult);
+            adoptPets.push({
+                id: `pet_${petId++}`,
+                name: `${v} ${base.name}`,
+                value: finalVal,
+                rarity: base.rarity,
+                img: "https://img.icons8.com/emoji/512/dragon-emoji.png"
             });
         });
     });
 
-    const adoptCases = Array.from({ length: 15 }, (_, i) => ({ id: `ac${i+1}`, name: `Adopt Case Vol.${i+1}`, price: (i+1) * 200, isFree: false }));
-    const mm2Cases = Array.from({ length: 15 }, (_, i) => ({ id: `mc${i+1}`, name: `MM2 Weapon Vol.${i+1}`, price: (i+1) * 250, isFree: false }));
+    const mm2BaseWeapons = [
+        { name: "Harvester", val: 14500, rarity: "godly" },
+        { name: "Icebreaker", val: 9800, rarity: "godly" },
+        { name: "Bat", val: 8900, rarity: "godly" },
+        { name: "Corrupt", val: 7400, rarity: "godly" },
+        { name: "Makeshift", val: 6200, rarity: "godly" },
+        { name: "Gingerscope", val: 18000, rarity: "godly" },
+        { name: "Candleflame", val: 4100, rarity: "godly" },
+        { name: "Swirly Gun", val: 3800, rarity: "godly" },
+        { name: "Elderwood Revolver", val: 2900, rarity: "legendary" },
+        { name: "Luger", val: 2100, rarity: "legendary" },
+        { name: "Laser", val: 1850, rarity: "legendary" },
+        { name: "Slasher", val: 1400, rarity: "legendary" },
+        { name: "Amerilaser", val: 1200, rarity: "rare" },
+        { name: "Nightblade", val: 850, rarity: "rare" },
+        { name: "Icewing", val: 450, rarity: "rare" },
+        { name: "Ghostblade", val: 380, rarity: "rare" },
+        { name: "Hallowscythe", val: 3100, rarity: "godly" },
+        { name: "BattleAxe II", val: 1600, rarity: "legendary" },
+        { name: "Gemstone", val: 950, rarity: "rare" },
+        { name: "Prismatic", val: 520, rarity: "rare" },
+        { name: "Bioblade", val: 410, rarity: "rare" },
+        { name: "Pixel", val: 1750, rarity: "legendary" },
+        { name: "Clockwork", val: 1900, rarity: "legendary" },
+        { name: "Eternal IV", val: 2200, rarity: "legendary" },
+        { name: "Nebula", val: 1100, rarity: "rare" },
+        { name: "Plasmabeam", val: 2800, rarity: "godly" },
+        { name: "Plasmadagger", val: 2600, rarity: "godly" },
+        { name: "Spectre", val: 3400, rarity: "godly" },
+        { name: "Phantom", val: 3300, rarity: "godly" },
+        { name: "Darksword", val: 8100, rarity: "godly" },
+        { name: "Ocean", val: 4900, rarity: "godly" },
+        { name: "Waves", val: 4700, rarity: "godly" }
+    ];
+
+    const mm2Skins = [
+        "Regular", "Chroma", "Gold", "Diamond", "Dark", "Light", "Rainbow", "Corrupted Spectrum",
+        "Cyberpunk", "Neon Glow", "Void", "Frozen", "Magma", "Galactic", "Amethyst", "Emerald"
+    ];
+    let mm2Weapons = [];
+    let wId = 1;
+
+    mm2BaseWeapons.forEach(base => {
+        mm2Skins.forEach((skin, idx) => {
+            let mult = 1 + (idx * 0.7);
+            if (skin === "Chroma") mult *= 3.0;
+            if (skin === "Corrupted Spectrum") mult *= 3.5;
+            let finalVal = Math.floor(base.val * mult);
+            mm2Weapons.push({
+                id: `mm_${wId++}`,
+                name: `${skin} ${base.name}`,
+                value: finalVal,
+                rarity: base.rarity,
+                img: skin.includes("Gun") || base.name.includes("Gun") || base.name.includes("Revolver") ? "https://img.icons8.com/isometric/512/gun.png" : "https://img.icons8.com/isometric/512/dagger.png"
+            });
+        });
+    });
+
+    /* 15 кейсов в каждом режиме */
+    const adoptCases = [
+        { id: "ac1", name: "Egg Starter Case", price: 100 },
+        { id: "ac2", name: "Ocean & Fossil Case", price: 250 },
+        { id: "ac3", name: "Rare Pets Case", price: 500 },
+        { id: "ac4", name: "Ultra-Rare Collection", price: 1000 },
+        { id: "ac5", name: "Fly Ride Special", price: 2500 },
+        { id: "ac6", name: "Neon Pet Box", price: 5000 },
+        { id: "ac7", name: "High Tier Dragons", price: 10000 },
+        { id: "ac8", name: "Mega Neon Crate", price: 25000 },
+        { id: "ac9", name: "Shadow & Frost Box", price: 50000 },
+        { id: "ac10", name: "GODLY ADOPT VAULT", price: 100000 },
+        { id: "ac11", name: "Mythic Safari Crate", price: 150000 },
+        { id: "ac12", name: "Cosmic Neon Box", price: 220000 },
+        { id: "ac13", name: "Ancient Relics Case", price: 350000 },
+        { id: "ac14", name: "Celestial Dragon Chest", price: 500000 },
+        { id: "ac15", name: "OVERLORD PET VAULT", price: 1000000 }
+    ];
+
+    const mm2Cases = [
+        { id: "mc1", name: "Common Blade Case", price: 100 },
+        { id: "mc2", name: "Vintage Gun Box", price: 250 },
+        { id: "mc3", name: "Godly Knife Crate", price: 500 },
+        { id: "mc4", name: "Ancient Revolver Case", price: 1200 },
+        { id: "mc5", name: "Chroma Mystery Box", price: 3000 },
+        { id: "mc6", name: "Elderwood Vault", price: 7500 },
+        { id: "mc7", name: "Corrupt & Harvester", price: 15000 },
+        { id: "mc8", name: "Spectral Weapons", price: 35000 },
+        { id: "mc9", name: "Gingerscope Special", price: 70000 },
+        { id: "mc10", name: "SUPREME MM2 VAULT", price: 150000 },
+        { id: "mc11", name: "Darksword Mystery Box", price: 250000 },
+        { id: "mc12", name: "Cyberpunk Arsenal", price: 400000 },
+        { id: "mc13", name: "Galactic Blade Crate", price: 650000 },
+        { id: "mc14", name: "Phantom Void Vault", price: 900000 },
+        { id: "mc15", name: "TITAN MM2 TREASURY", price: 1500000 }
+    ];
 
     function switchGameMode(mode) {
         currentMode = mode;
         document.getElementById("mode-adopt").classList.toggle("active", mode === "adopt");
         document.getElementById("mode-mm2").classList.toggle("active", mode === "mm2");
         renderApp();
+    }
+
+    function updateBestDrop(item) {
+        if (!bestDrop || item.value > bestDrop.value) {
+            bestDrop = item;
+            localStorage.setItem("bestDrop", JSON.stringify(bestDrop));
+        }
     }
 
     function saveData() {
@@ -698,18 +1042,44 @@
         localStorage.setItem("refCount", refCount);
         localStorage.setItem("refEarned", refEarned);
         updateUI();
+        checkFreeCaseNotification();
     }
 
     function updateUI() {
-        document.getElementById("coins").innerText = coins;
-        document.getElementById("profile-coins").innerText = coins;
+        document.getElementById("coins").innerText = coins.toLocaleString();
+        document.getElementById("profile-coins").innerText = coins.toLocaleString();
         document.getElementById("cases-opened").innerText = openedCount;
         document.getElementById("user-nickname-display").innerText = userNick;
         document.getElementById("user-avatar").src = userAvatar;
         document.getElementById("inventory-title").innerText = currentMode === "adopt" ? "🎒 Инвентарь (Adopt Me)" : "🎒 Инвентарь (MM2)";
         document.getElementById("ref-count").innerText = refCount;
-        document.getElementById("ref-earned").innerText = refEarned;
-        document.getElementById("ref-link-input").value = `https://t.me/your_bot?start=ref_${Math.floor(Math.random()*899999+100000)}`;
+        document.getElementById("ref-earned").innerText = refEarned.toLocaleString();
+        document.getElementById("ref-link-input").value = `https://t.me/${BOT_USERNAME}?start=ref_${Math.floor(Math.random()*899999+100000)}`;
+
+        // Расчет общей стоимости инвентаря
+        const currentInv = currentMode === "adopt" ? inventoryAdopt : inventoryMM2;
+        const totalVal = currentInv.reduce((sum, item) => sum + (item.value || 0), 0);
+        document.getElementById("total-inventory-value").innerText = `${totalVal.toLocaleString()} Value`;
+
+        // Обновление лучшего дропа в профиле
+        if (bestDrop) {
+            document.getElementById("best-drop-title").innerText = bestDrop.name;
+            document.getElementById("best-drop-value").innerText = `Value: ${bestDrop.value.toLocaleString()}`;
+            document.getElementById("best-drop-img").src = bestDrop.img;
+        }
+    }
+
+    function checkFreeCaseNotification() {
+        const now = Date.now();
+        const fortyEightHours = 48 * 60 * 60 * 1000;
+        const banner = document.getElementById("free-case-banner");
+        if (now - lastFreeCase >= fortyEightHours) banner.style.display = "block";
+        else banner.style.display = "none";
+    }
+
+    function claimFreeCaseNotification() {
+        switchTab('cases-tab');
+        openCaseModal({ name: 'Free Case', price: 0, isFree: true });
     }
 
     function triggerConfetti() {
@@ -721,9 +1091,9 @@
         filterShop();
         renderInventory();
         updateUI();
+        checkFreeCaseNotification();
     }
 
-    /* РЕНДЕР КЕЙСОВ */
     function renderCases() {
         const container = document.getElementById("cases-container");
         container.innerHTML = "";
@@ -732,7 +1102,7 @@
         const fortyEightHours = 48 * 60 * 60 * 1000;
         const isFreeReady = (now - lastFreeCase >= fortyEightHours);
         
-        let freeBtnText = "Бесплатный Кейс";
+        let freeBtnText = "Бесплатный";
         if (!isFreeReady) {
             const diff = fortyEightHours - (now - lastFreeCase);
             const hours = Math.floor(diff / (1000 * 60 * 60));
@@ -740,126 +1110,165 @@
         }
 
         container.innerHTML += `
-            <div class="case-card free-case-card">
+            <div class="case-card free-case-card" onclick="openCaseModal({ name: 'Free Case', price: 0, isFree: true })">
                 <div class="case-title" style="color: #72efdd;">🎁 Free Case (48ч)</div>
                 <img class="case-img" src="https://img.icons8.com/isometric/512/gift.png">
-                <button class="btn-open" onclick="openCaseModal({ name: 'Free Case', price: 0, isFree: true })" ${!isFreeReady ? 'disabled' : ''} style="background: linear-gradient(90deg, #11998e, #38ef7d);">${freeBtnText}</button>
+                <button class="btn-open" ${!isFreeReady ? 'disabled' : ''} style="background: linear-gradient(90deg, #11998e, #38ef7d);">${freeBtnText}</button>
             </div>
         `;
 
         const list = currentMode === "adopt" ? adoptCases : mm2Cases;
         list.forEach(c => {
             container.innerHTML += `
-                <div class="case-card">
+                <div class="case-card" onclick='openCaseModal(${JSON.stringify(c).replace(/'/g, "&apos;")})'>
                     <div class="case-title">${c.name}</div>
                     <img class="case-img" src="https://img.icons8.com/isometric/512/treasure-chest.png">
-                    <button class="btn-open" onclick="openCaseModal(${JSON.stringify(c).replace(/"/g, '&quot;')})">${c.price} Coins</button>
+                    <button class="btn-open">${c.price.toLocaleString()} Coins</button>
                 </div>
             `;
         });
     }
 
-    /* ОТКРЫТИЕ МОДАЛКИ КЕЙСА СО СПИСКОМ И ШАНСАМИ */
+    function selectSpinCount(count) {
+        selectedSpinCount = count;
+        for (let i = 1; i <= 5; i++) {
+            const btn = document.getElementById(`cspin-${i}`);
+            if (btn) btn.classList.toggle("active", i === count);
+        }
+        updateTotalPriceDisplay();
+        renderRouletteContainers();
+    }
+
+    function updateTotalPriceDisplay() {
+        if (!currentActiveCase) return;
+        const total = currentActiveCase.isFree ? 0 : currentActiveCase.price * selectedSpinCount;
+        document.getElementById("total-price-display").innerText = total.toLocaleString();
+    }
+
+    /* Генерация нескольких рулеток в зависимости от вызова (1x - 5x) */
+    function renderRouletteContainers() {
+        const wrapper = document.getElementById("roulettes-wrapper");
+        wrapper.innerHTML = "";
+        for (let i = 0; i < selectedSpinCount; i++) {
+            wrapper.innerHTML += `
+                <div class="roulette-container">
+                    <div class="roulette-pointer"></div>
+                    <div class="roulette-track" id="roulette-track-${i}"></div>
+                </div>
+            `;
+        }
+    }
+
     function openCaseModal(c) {
         currentActiveCase = c;
+        selectedSpinCount = 1;
+        selectSpinCount(1);
         document.getElementById("modal-case-title").innerText = c.name;
         
         const source = currentMode === "adopt" ? adoptPets : mm2Weapons;
-        // Берём 6 предметов для демонстрации шансов
-        const drops = source.slice(0, 6);
-        const chances = [45, 25, 15, 9, 5, 1]; // Шансы в %
+        const drops = source.slice(0, 10);
 
         const dropsContainer = document.getElementById("modal-case-drops");
         dropsContainer.innerHTML = "";
 
-        drops.forEach((item, i) => {
+        drops.forEach((item) => {
+            const rarityClass = item.rarity === 'godly' ? 'rarity-godly' : (item.rarity === 'legendary' ? 'rarity-legendary' : 'rarity-rare');
             dropsContainer.innerHTML += `
-                <div class="case-drop-item">
-                    <span style="color: #caf0f8;">${item.name}</span>
-                    <span style="color: #72efdd; font-weight: bold;">${chances[i]}%</span>
+                <div class="drop-card-square">
+                    <div class="drop-badge-rarity ${rarityClass}">${item.rarity || 'RARE'}</div>
+                    <div class="drop-badge-value">VAL ${item.value}</div>
+                    <div class="drop-card-title">${item.name}</div>
+                    <img class="drop-card-img" src="${item.img}">
+                    <div class="drop-card-footer">
+                        <span>${item.value}</span>
+                        <span style="color: #00b4d8;">🪙</span>
+                    </div>
                 </div>
             `;
         });
 
-        // Сброс рулетки
-        const track = document.getElementById("roulette-track");
-        track.style.transition = "none";
-        track.style.transform = "translateX(0px)";
-        track.innerHTML = "";
-
+        renderRouletteContainers();
         document.getElementById("start-spin-btn").disabled = false;
         openModal("case-open-modal");
     }
 
-    /* ЗАПУСК АНИМАЦИИ ПРОКРУТКИ РУЛЕТКИ */
-    function spinCase() {
+    /* МУЛЬТИ-АНИМАЦИЯ ОТКРЫТИЯ КЕЙСОВ */
+    function spinCaseMulti() {
         if (!currentActiveCase) return;
+        const totalCost = currentActiveCase.isFree ? 0 : currentActiveCase.price * selectedSpinCount;
 
         if (currentActiveCase.isFree) {
             const now = Date.now();
             const fortyEightHours = 48 * 60 * 60 * 1000;
-            if (now - lastFreeCase < fortyEightHours) return;
+            if (now - lastFreeCase < fortyEightHours) { alert("Бесплатный кейс недоступен!"); return; }
             lastFreeCase = now;
         } else {
-            if (coins < currentActiveCase.price) { alert("Недостаточно Coins!"); return; }
-            coins -= currentActiveCase.price;
+            if (coins < totalCost) { alert("Недостаточно Coins!"); return; }
+            coins -= totalCost;
         }
 
         document.getElementById("start-spin-btn").disabled = true;
 
         const source = currentMode === "adopt" ? adoptPets : mm2Weapons;
-        const track = document.getElementById("roulette-track");
-        track.innerHTML = "";
+        let wonItems = [];
 
-        // Генерируем ленту из 40 предметов
-        let itemsSequence = [];
-        for (let i = 0; i < 40; i++) {
-            const randItem = source[Math.floor(Math.random() * source.length)];
-            itemsSequence.push(randItem);
-            track.innerHTML += `
-                <div class="roulette-item">
-                    <img src="${randItem.img}">
-                    <span>${randItem.name.substring(0, 10)}..</span>
-                </div>
-            `;
+        for (let s = 0; s < selectedSpinCount; s++) {
+            const track = document.getElementById(`roulette-track-${s}`);
+            if (!track) continue;
+            track.innerHTML = "";
+
+            let winItem = source[Math.floor(Math.random() * source.length)];
+            wonItems.push(winItem);
+
+            for (let i = 0; i < 40; i++) {
+                const randItem = (i === 32) ? winItem : source[Math.floor(Math.random() * source.length)];
+                track.innerHTML += `
+                    <div class="roulette-item">
+                        <img src="${randItem.img}">
+                        <span>${randItem.name.substring(0, 10)}..</span>
+                    </div>
+                `;
+            }
+
+            setTimeout(() => {
+                track.style.transition = "transform 4.5s cubic-bezier(0.15, 0.9, 0.15, 1)";
+                const targetOffset = -(32 * 76 - 90);
+                track.style.transform = `translateX(${targetOffset}px)`;
+            }, 50);
         }
 
-        const winningItem = itemsSequence[32]; // Выигрышный предмет
-
         setTimeout(() => {
-            track.style.transition = "transform 4.5s cubic-bezier(0.15, 0.9, 0.15, 1)";
-            const targetOffset = -(32 * 93 - 110);
-            track.style.transform = `translateX(${targetOffset}px)`;
-        }, 50);
-
-        setTimeout(() => {
-            openedCount++;
-            if (currentMode === "adopt") inventoryAdopt.push({ ...winningItem });
-            else inventoryMM2.push({ ...winningItem });
+            openedCount += selectedSpinCount;
+            wonItems.forEach(item => {
+                if (currentMode === "adopt") inventoryAdopt.push({ ...item });
+                else inventoryMM2.push({ ...item });
+                updateBestDrop(item);
+            });
 
             saveData();
             renderApp();
             triggerConfetti();
-            alert(`🎉 Поздравляем! Вам выпало: ${winningItem.name}`);
+
+            let namesList = wonItems.map(i => i.name).join("\n• ");
+            alert(`🎉 Вы получили (${selectedSpinCount}x):\n• ${namesList}`);
             closeModal("case-open-modal");
         }, 4800);
     }
 
-    /* МАГАЗИН И ИНВЕНТАРЬ */
     function filterShop() {
         const query = document.getElementById("shop-search").value.toLowerCase();
         const container = document.getElementById("shop-container");
         container.innerHTML = "";
         const source = currentMode === "adopt" ? adoptPets : mm2Weapons;
 
-        const filtered = source.filter(item => item.name.toLowerCase().includes(query));
+        const filtered = source.filter(item => item.name.toLowerCase().includes(query)).slice(0, 60);
 
         filtered.forEach(p => {
             container.innerHTML += `
                 <div class="item-card">
                     <img class="item-img" src="${p.img}">
                     <div class="item-name">${p.name}</div>
-                    <div class="item-value">Value: ${p.value}</div>
+                    <div class="item-value">Value: ${p.value.toLocaleString()}</div>
                     <button class="btn-open" onclick="buyItem('${p.name}', ${p.value}, '${p.img}')">Купить</button>
                 </div>
             `;
@@ -869,8 +1278,10 @@
     function buyItem(name, value, img) {
         if (coins < value) { alert("Недостаточно Coins!"); return; }
         coins -= value;
-        if (currentMode === "adopt") inventoryAdopt.push({ name, value, img });
-        else inventoryMM2.push({ name, value, img });
+        const newItem = { name, value, img };
+        if (currentMode === "adopt") inventoryAdopt.push(newItem);
+        else inventoryMM2.push(newItem);
+        updateBestDrop(newItem);
         saveData();
         renderInventory();
         triggerConfetti();
@@ -892,7 +1303,7 @@
                 <div class="item-card">
                     <img class="item-img" src="${item.img}">
                     <div class="item-name">${item.name}</div>
-                    <div class="item-value">Value: ${item.value}</div>
+                    <div class="item-value">Value: ${item.value.toLocaleString()}</div>
                     <button class="btn-open" onclick="openWithdrawModal(${index})" style="background: linear-gradient(90deg, #11998e, #38ef7d); margin-bottom: 4px;">Вывести</button>
                     <button class="btn-open" onclick="sellItem(${index})" style="background: #ff4d4d;">Продать</button>
                 </div>
@@ -908,12 +1319,24 @@
         renderInventory();
     }
 
-    /* СИСТЕМА ВЫВОДА */
+    function startWithdrawTimer() {
+        let time = 300;
+        clearInterval(withdrawTimerInterval);
+        withdrawTimerInterval = setInterval(() => {
+            let m = Math.floor(time / 60);
+            let s = time % 60;
+            document.getElementById('withdraw-timer').innerText = `${m<10?'0':''}${m}:${s<10?'0':''}${s}`;
+            if (time <= 0) clearInterval(withdrawTimerInterval);
+            time--;
+        }, 1000);
+    }
+
     function openWithdrawModal(index) {
         withdrawIndex = index;
         const currentInv = currentMode === "adopt" ? inventoryAdopt : inventoryMM2;
         const item = currentInv[index];
         document.getElementById("withdraw-item-info").innerText = `Вывод: ${item.name} (Value: ${item.value})`;
+        startWithdrawTimer();
         openModal("withdraw-modal");
     }
 
@@ -922,14 +1345,26 @@
         if (!user) { alert("Введите никнейм Roblox!"); return; }
 
         const currentInv = currentMode === "adopt" ? inventoryAdopt : inventoryMM2;
+        const item = currentInv[withdrawIndex];
         currentInv.splice(withdrawIndex, 1);
         saveData();
         renderInventory();
+
+        if (tg) {
+            tg.sendData(JSON.stringify({
+                action: "withdraw",
+                bot_username: `@${BOT_USERNAME}`,
+                admin_roblox: "Gol5621",
+                roblox_user: user,
+                item_name: item.name,
+                item_value: item.value
+            }));
+        }
+
         closeModal("withdraw-modal");
-        alert(`🚀 Заявка на вывод отправлена! Предмет поступит на аккаунт ${user} в течение 24 часов.`);
+        alert(`🚀 Заявка отправлена на @${BOT_USERNAME}! Добавьте Gol5621 в Roblox. Таймер 5 минут запущен.`);
     }
 
-    /* АПГРЕЙДЕР */
     function openPickerModal(type) {
         const container = document.getElementById("picker-container");
         const title = document.getElementById("picker-title");
@@ -947,23 +1382,23 @@
             } else {
                 allUserItems.forEach((item) => {
                     container.innerHTML += `
-                        <div class="item-card" onclick="selectPickerItem('inventory', ${JSON.stringify(item).replace(/"/g, '&quot;')})">
+                        <div class="item-card" onclick='selectPickerItem("inventory", ${JSON.stringify(item).replace(/'/g, "&apos;")})'>
                             <img class="item-img" src="${item.img}">
                             <div class="item-name">${item.name}</div>
-                            <div class="item-value">Val: ${item.value} (${item.source.toUpperCase()})</div>
+                            <div class="item-value">Val: ${item.value.toLocaleString()}</div>
                         </div>
                     `;
                 });
             }
         } else {
             title.innerText = "Выберите цель:";
-            let allShopItems = [...adoptPets, ...mm2Weapons];
+            let allShopItems = [...adoptPets, ...mm2Weapons].slice(0, 50);
             allShopItems.forEach((item) => {
                 container.innerHTML += `
-                    <div class="item-card" onclick="selectPickerItem('shop', ${JSON.stringify(item).replace(/"/g, '&quot;')})">
+                    <div class="item-card" onclick='selectPickerItem("shop", ${JSON.stringify(item).replace(/'/g, "&apos;")})'>
                         <img class="item-img" src="${item.img}">
                         <div class="item-name">${item.name}</div>
-                        <div class="item-value">Val: ${item.value}</div>
+                        <div class="item-value">Val: ${item.value.toLocaleString()}</div>
                     </div>
                 `;
             });
@@ -987,7 +1422,7 @@
     function calculateUpgradeChance() {
         if (selectedUpItem && selectedTargetItem) {
             let chance = Math.floor((selectedUpItem.value / selectedTargetItem.value) * 100);
-            if (chance > 90) chance = 90;
+            if (chance > 75) chance = 75;
             if (chance < 1) chance = 1;
 
             document.getElementById("upgrade-chance").innerText = chance + "%";
@@ -999,7 +1434,7 @@
         if (!selectedUpItem || !selectedTargetItem) { alert("Выберите оба предмета!"); return; }
 
         let chance = Math.floor((selectedUpItem.value / selectedTargetItem.value) * 100);
-        if (chance > 90) chance = 90;
+        if (chance > 75) chance = 75;
         if (chance < 1) chance = 1;
 
         const arrow = document.getElementById("wheel-arrow");
@@ -1019,6 +1454,7 @@
                 triggerConfetti();
                 alert("🎉 УСПЕХ! Предмет успешно улучшен!");
                 inventoryAdopt.push({ ...selectedTargetItem });
+                updateBestDrop({ ...selectedTargetItem });
             } else {
                 alert("💥 НЕУДАЧА! Ваш предмет сгорел.");
             }
@@ -1037,19 +1473,18 @@
         }, 3200);
     }
 
-    /* ИГРА ШАРИКИ (PLINKO) C ЦЕНТРАЛЬНЫМ x10 И ШАНСАМИ */
+    /* PLINKO С УМЕНЬШЕННЫМИ ШАНСАМИ */
     const canvas = document.getElementById("plinko-canvas");
     const ctx = canvas.getContext("2d");
-    
-    // Множители: x10 строго в центре
+
     const multipliers = [
         { mult: 0.2, color: "#ff4d4d" },
         { mult: 0.5, color: "#ff9f43" },
-        { mult: 2, color: "#feca57" },
-        { mult: 5, color: "#72efdd" },
-        { mult: 10, color: "#a855f7" }, // Центр
-        { mult: 5, color: "#72efdd" },
-        { mult: 2, color: "#feca57" },
+        { mult: 1.2, color: "#feca57" },
+        { mult: 2.0, color: "#72efdd" },
+        { mult: 4.0, color: "#a855f7" },
+        { mult: 2.0, color: "#72efdd" },
+        { mult: 1.2, color: "#feca57" },
         { mult: 0.5, color: "#ff9f43" },
         { mult: 0.2, color: "#ff4d4d" }
     ];
@@ -1063,13 +1498,21 @@
             const spacing = 32;
             const startX = (canvas.width - (count - 1) * spacing) / 2;
             for (let c = 0; c < count; c++) {
-                pins.push({ x: startX + c * spacing, y: 45 + r * 34 });
+                pins.push({ x: startX + c * spacing, y: 40 + r * 32 });
             }
         }
     }
     initPins();
 
-    let activeBall = null;
+    let activeBalls = [];
+
+    function selectPlinkoBallCount(count) {
+        selectedPlinkoBallCount = count;
+        for (let i of [1, 2, 3, 5]) {
+            const btn = document.getElementById(`pball-${i}`);
+            if (btn) btn.classList.toggle("active", i === count);
+        }
+    }
 
     function drawPlinko() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1084,46 +1527,48 @@
         const slotW = canvas.width / multipliers.length;
         multipliers.forEach((m, i) => {
             ctx.fillStyle = m.color;
-            ctx.fillRect(i * slotW + 2, canvas.height - 28, slotW - 4, 24);
+            ctx.fillRect(i * slotW + 2, canvas.height - 26, slotW - 4, 22);
             ctx.fillStyle = "#000";
             ctx.font = "bold 10px sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText(`x${m.mult}`, i * slotW + slotW / 2, canvas.height - 12);
+            ctx.fillText(`x${m.mult}`, i * slotW + slotW / 2, canvas.height - 10);
         });
 
-        if (activeBall) {
+        for (let b = activeBalls.length - 1; b >= 0; b--) {
+            let ball = activeBalls[b];
+            
             ctx.fillStyle = "#ff4d4d";
             ctx.beginPath();
-            ctx.arc(activeBall.x, activeBall.y, 6, 0, Math.PI * 2);
+            ctx.arc(ball.x, ball.y, 6, 0, Math.PI * 2);
             ctx.fill();
 
-            activeBall.y += activeBall.vy;
-            activeBall.x += activeBall.vx;
-            activeBall.vy += 0.14;
+            ball.y += ball.vy;
+            ball.x += ball.vx;
+            ball.vy += 0.16;
 
             pins.forEach(p => {
-                let dx = activeBall.x - p.x;
-                let dy = activeBall.y - p.y;
+                let dx = ball.x - p.x;
+                let dy = ball.y - p.y;
                 let dist = Math.sqrt(dx * dx + dy * dy);
                 if (dist < 10) {
-                    activeBall.vy *= -0.35;
-                    activeBall.vx += (Math.random() - 0.5) * 1.8;
+                    ball.vy *= -0.3;
+                    // Равномерный случайный отскок без притяга к центру
+                    ball.vx += (Math.random() - 0.5) * 2.2;
                 }
             });
 
-            if (activeBall.y >= canvas.height - 32) {
-                let slotIndex = Math.floor(activeBall.x / slotW);
+            if (ball.y >= canvas.height - 30) {
+                let slotIndex = Math.floor(ball.x / slotW);
                 if (slotIndex < 0) slotIndex = 0;
                 if (slotIndex >= multipliers.length) slotIndex = multipliers.length - 1;
 
                 let winMult = multipliers[slotIndex].mult;
-                let winAmount = Math.floor(activeBall.bet * winMult);
+                let winAmount = Math.floor(ball.bet * winMult);
                 coins += winAmount;
                 saveData();
-                
-                if (winMult >= 2) triggerConfetti();
-                alert(`🎈 Вы выиграли ${winAmount} Coins (х${winMult})!`);
-                activeBall = null;
+
+                if (winMult >= 3) triggerConfetti();
+                activeBalls.splice(b, 1);
             }
         }
 
@@ -1131,47 +1576,47 @@
     }
     drawPlinko();
 
-    function dropBall() {
-        if (activeBall) return;
+    function dropBalls() {
         let bet = parseInt(document.getElementById("ball-bet").value);
         if (isNaN(bet) || bet <= 0) { alert("Введите ставку!"); return; }
-        if (coins < bet) { alert("Недостаточно Coins!"); return; }
+        let totalCost = bet * selectedPlinkoBallCount;
 
-        coins -= bet;
+        if (coins < totalCost) { alert("Недостаточно Coins!"); return; }
+
+        coins -= totalCost;
         saveData();
 
-        activeBall = {
-            x: canvas.width / 2 + (Math.random() - 0.5) * 8,
-            y: 12,
-            vx: (Math.random() - 0.5) * 1.2,
-            vy: 2,
-            bet: bet
-        };
+        for (let i = 0; i < selectedPlinkoBallCount; i++) {
+            setTimeout(() => {
+                activeBalls.push({
+                    x: canvas.width / 2 + (Math.random() - 0.5) * 20,
+                    y: 10,
+                    vx: (Math.random() - 0.5) * 1.5,
+                    vy: 2,
+                    bet: bet
+                });
+            }, i * 200);
+        }
     }
 
-    /* РЕФЕРАЛЫ И ПОПОЛНЕНИЕ С 5% БОНУСОМ */
     function addFreeCoins(amount) {
         coins += amount;
-        
-        // 5% Начисление рефереру
         const refBonus = Math.floor(amount * 0.05);
         refEarned += refBonus;
         refCount += 1;
-
         saveData();
         closeModal("deposit-modal");
         triggerConfetti();
-        alert(`Начислено +${amount} Coins! (Рефереру отправлено +${refBonus} 🪙)`);
+        alert(`Начислено +${amount} Coins!`);
     }
 
     function copyRefLink() {
         const input = document.getElementById("ref-link-input");
         input.select();
         navigator.clipboard.writeText(input.value);
-        alert("Реферальная ссылка скопирована!");
+        alert("Ссылка скопирована!");
     }
 
-    /* ПРОФИЛЬ */
     function saveProfileSettings() {
         const nick = document.getElementById("nick-input").value.trim();
         const fileInput = document.getElementById("avatar-file-input");
@@ -1200,11 +1645,8 @@
         document.getElementById(tabId).classList.add("active");
         
         const gameBar = document.getElementById("game-mode-bar");
-        if (tabId === 'cases-tab' || tabId === 'shop-tab') {
-            gameBar.style.display = "flex";
-        } else {
-            gameBar.style.display = "none";
-        }
+        if (tabId === 'cases-tab' || tabId === 'shop-tab') gameBar.style.display = "flex";
+        else gameBar.style.display = "none";
 
         if (btnElement) {
             document.querySelectorAll(".nav-item").forEach(btn => btn.classList.remove("active"));
