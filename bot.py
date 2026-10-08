@@ -1,14 +1,19 @@
 import asyncio
 from aiogram import Bot, Dispatcher, F, types
+from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 
 BOT_TOKEN = "8220061421:AAHqOFSyXM029zUAr_3hd2tXaOX19cwfJ6U"
 
-# ⚠️ Вкажіть ПРАВИЛЬНОЕ URL від GitHub Pages (не github.com/...)
+# Ссылка на ваш GitHub Pages (Mini App)
 WEB_APP_URL = "https://domnageev-coder.github.io/casino-bot3/"
 
-bot = Bot(token=BOT_TOKEN)
+# --- НАСТРОЙКА ПРОКСИ ДЛЯ PYTHONANYWHERE ---
+session = AiohttpSession(proxy="http://proxy.server:3128")
+
+# Инициализация бота с сессией через прокси
+bot = Bot(token=BOT_TOKEN, session=session)
 dp = Dispatcher()
 
 def main_keyboard():
