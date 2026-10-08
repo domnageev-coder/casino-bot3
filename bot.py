@@ -5,11 +5,11 @@ from aiogram.filters import Command
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 # ⚠️ Вставьте сюда ваш токен бота от @BotFather
-BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"
+BOT_TOKEN = "8220061421:AAHqOFSyXM029zUAr_3hd2tXaOX19cwfJ6U"
 
 # ⚠️ Вставьте сюда ваш личный Telegram ID (чтобы получать уведомления)
 # Узнать свой ID можно у бота @userinfobot
-ADMIN_ID = 123456789
+ADMIN_ID = 8761610032
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
