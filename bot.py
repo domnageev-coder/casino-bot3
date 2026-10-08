@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 
 # Укажите здесь ВАШУ ссылку, которую выдал GitHub Pages на Шаге 1
-WEB_APP_URL = "https://domnageev-coder.github.io/casino-bot3/"
+WEB_APP_URL = "https://github.com/domnageev-coder/casino-bot3/blob/main/index.html"
 
 def main_keyboard():
     kb = [
