@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roblox Trading & Cases Hub</title>
+    <title>PixelDrop Hub</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -81,6 +81,9 @@
         .wheel-arrow { position: absolute; top: 0; left: 50%; width: 4px; height: 70px; margin-left: -2px; transform-origin: bottom center; z-index: 3; transition: transform 3s cubic-bezier(0.25, 0.1, 0.25, 1); }
         .wheel-arrow::before { content: ''; position: absolute; top: 0; left: -4px; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 12px solid #ffffff; }
 
+        .multiplier-bar { display: flex; gap: 6px; justify-content: center; margin-bottom: 10px; }
+        .mult-btn { background: #08121e; border: 1px solid #00b4d8; color: #72efdd; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px; }
+
         .balls-game-container { background: #132238; border: 2px solid #00b4d8; border-radius: 18px; padding: 12px; text-align: center; }
         canvas#plinko-canvas { background: #08121e; border-radius: 12px; border: 1px solid #00b4d8; display: block; margin: 0 auto 12px auto; }
 
@@ -126,7 +129,7 @@
 
     <div id="shop-tab" class="page-tab">
         <div class="search-box">
-            <input type="text" class="search-input" id="shop-search" placeholder="🔍 Поиск по 500+ предметам..." oninput="filterShop()">
+            <input type="text" class="search-input" id="shop-search" placeholder="🔍 Поиск по предметам..." oninput="filterShop()">
             <div class="filter-row">
                 <select class="select-input" id="sort-price" onchange="filterShop()">
                     <option value="none">По цене (нет)</option>
@@ -151,6 +154,14 @@
                 <div style="font-size: 22px; color: #72efdd;">➔</div>
                 <div class="upgrade-slot" id="slot-to" onclick="openPickerModal('shop')"><span>Выбрать цель</span></div>
             </div>
+
+            <div class="multiplier-bar">
+                <button class="mult-btn" onclick="applyMultiplier(2)">x2</button>
+                <button class="mult-btn" onclick="applyMultiplier(3)">x3</button>
+                <button class="mult-btn" onclick="applyMultiplier(5)">x5</button>
+                <input type="number" id="custom-mult-input" class="input-field" style="width:70px; margin:0; padding:4px;" placeholder="x..." oninput="applyCustomMultiplier()">
+            </div>
+
             <div class="wheel-wrapper">
                 <div class="wheel-arrow" id="wheel-arrow"></div>
                 <div class="wheel-circle" id="wheel-circle"><div class="wheel-inner" id="upgrade-chance">0%</div></div>
@@ -238,7 +249,7 @@
             </div>
 
             <input type="text" class="input-field" id="nick-input" placeholder="Новый никнейм" style="margin-top: 12px;">
-            <input type="text" class="input-field" id="avatar-url-input" placeholder="Ссылка на ваш аватар (URL)" style="margin-top: 6px;">
+            <input type="text" class="input-field" id="avatar-url-input" placeholder="Ссылка на аватар (URL)" style="margin-top: 6px;">
             <button class="btn-open" onclick="saveProfileSettings()" style="margin-top: 8px; background: #72efdd; color: #08121e;">Сохранить профиль</button>
         </div>
     </div>
@@ -257,7 +268,7 @@
             </div>
 
             <div style="background: #08121e; padding: 10px; border-radius: 12px; border: 1px solid #ff4d4d;">
-                <div style="font-size: 12px; color: #90e0ef;">Создать свой промокод:</div>
+                <div style="font-size: 12px; color: #90e0ef;">Создать промокод:</div>
                 <input type="text" id="admin-promo-code" class="input-field" placeholder="Код (напр. FREE500)">
                 <input type="number" id="admin-promo-coins" class="input-field" placeholder="Сумма Coins">
                 <button class="btn-open" onclick="adminCreatePromo()" style="margin-top: 6px; background: #3498db;">Создать Промокод</button>
@@ -356,8 +367,8 @@
     </div>
 
 <script>
-    const ADMIN_TELEGRAM_ID = 123456789; 
-
+    // ВАШ TELEGRAM ID
+    const ADMIN_TELEGRAM_ID = 7548882572; 
     const BOT_USERNAME = "playadoptroblox_bot";
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     if (tg) tg.expand();
@@ -380,9 +391,6 @@
     let userNick = localStorage.getItem("userNick") || "Игрок";
     let userAvatar = localStorage.getItem("userAvatar") || "https://img.icons8.com/emoji/512/user-robot.png";
 
-    let refCount = parseInt(localStorage.getItem("refCount")) || 0;
-    let refEarned = parseInt(localStorage.getItem("refEarned")) || 0;
-
     let selectedUpItem = null;
     let selectedTargetItem = null;
     let currentActiveCase = null;
@@ -397,16 +405,15 @@
         toast.className = "toast";
         toast.innerHTML = message;
         container.appendChild(toast);
-
         setTimeout(() => toast.classList.add("show"), 10);
-
         setTimeout(() => {
             toast.classList.remove("show");
             setTimeout(() => toast.remove(), 400);
         }, 3500);
     }
 
-    /* БАЗА ПРЕДМЕТОВ З ТОЧНИМИ ФОТО З ПАПКИ img */
+    const defaultImg = "https://img.icons8.com/isometric/512/treasure-chest.png";
+
     const adoptBasePets = [
         { name: "Shadow Dragon", val: 12500, rarity: "godly" }, { name: "Bat Dragon", val: 10800, rarity: "godly" },
         { name: "Giraffe", val: 8200, rarity: "godly" }, { name: "Frost Dragon", val: 6100, rarity: "godly" },
@@ -424,7 +431,7 @@
             if (v.includes("Mega")) mult *= 2.5;
             adoptPets.push({
                 id: `pet_${petId++}`, name: `${v} ${base.name}`, value: Math.floor(base.val * mult),
-                rarity: base.rarity, img: "img/5350686776261025597.jpg"
+                rarity: base.rarity, img: "https://img.icons8.com/emoji/512/dragon-emoji.png"
             });
         });
     });
@@ -444,47 +451,45 @@
             if (skin === "Chroma") mult *= 3.2;
             mm2Weapons.push({
                 id: `mm_${wId++}`, name: `${skin} ${base.name}`, value: Math.floor(base.val * mult),
-                rarity: base.rarity, img: "img/5350686776261025598.jpg"
+                rarity: base.rarity, img: base.name.includes("Gun") ? "https://img.icons8.com/isometric/512/gun.png" : "https://img.icons8.com/isometric/512/dagger.png"
             });
         });
     });
 
-    /* 15 КЕЙСІВ ADOPT ME З ТОЧНИМИ ФОТО З ПАПКИ img */
     const adoptCases = [
-        { id: "ac_free", name: "🎁 Free Case (48ч)", price: 0, isFree: true, img: "img/5350686776261025599.jpg" },
-        { id: "ac1", name: "🦜 Попугай Кеша", price: 350, img: "img/5350686776261025600.jpg" },
-        { id: "ac3", name: "🇺🇦 Украинский Кейс", price: 1000, img: "img/5350686776261025602.jpg" },
-        { id: "ac4", name: "🐾 Тёмные Животные", price: 1200, img: "img/5350686776261025605.jpg" },
-        { id: "ac5", name: "❤️ Любовный Ящик", price: 500, img: "img/5350686776261025606.jpg" },
-        { id: "ac6", name: "🐰 Ящик Кроликов", price: 450, img: "img/5350686776261025607.jpg" },
-        { id: "ac7", name: "🐱 Ящик Гарфилда", price: 600, img: "img/5350686776261025608.jpg" },
-        { id: "ac8", name: "🌿 Природный Ящик", price: 400, img: "img/5350686776261025609.jpg" },
-        { id: "ac9", name: "👑 Сказочные Герои", price: 1600, img: "img/5350686776261025610.jpg" },
-        { id: "ac10", name: "🧱 Лего Кейс", price: 850, img: "img/5350686776261025611.jpg" },
-        { id: "ac11", name: "🧬 Кейс Биологии", price: 700, img: "img/5350686776261025612.jpg" },
-        { id: "ac12", name: "📚 Школьный Ящик", price: 300, img: "img/67cb1544-21b2-46cf-aa9e-85e13e1715a1.jpg" },
-        { id: "ac13", name: "💖 Любовный Ящик (Premium)", price: 1000, img: "img/6fd3b783-9ea2-48e0-8989-7504581abc61.jpg" },
-        { id: "ac14", name: "👹 Ящик Шрека", price: 650, img: "img/78291dd1-96a1-4d1b-9aeb-20653ac32ac1.jpg" },
-        { id: "ac15", name: "👻 Хэллоуинский Слайм", price: 850, img: "img/a024b85b-fd2f-461b-812d-760f235a8d7f.jpg" }
+        { id: "ac_free", name: "🎁 Free Case (48ч)", price: 0, isFree: true, img: "https://img.icons8.com/emoji/512/wrapped-gift.png" },
+        { id: "ac1", name: "🦜 Попугай Кеша", price: 350, img: "https://img.icons8.com/emoji/512/parrot-emoji.png" },
+        { id: "ac3", name: "🇺🇦 Украинский Кейс", price: 1000, img: "https://img.icons8.com/emoji/512/flag-ukraine.png" },
+        { id: "ac4", name: "🐾 Тёмные Животные", price: 1200, img: "https://img.icons8.com/emoji/512/black-cat.png" },
+        { id: "ac5", name: "❤️ Любовный Ящик", price: 500, img: "https://img.icons8.com/emoji/512/growing-heart.png" },
+        { id: "ac6", name: "🐰 Ящик Кроликов", price: 450, img: "https://img.icons8.com/emoji/512/rabbit-face-emoji.png" },
+        { id: "ac7", name: "🐱 Ящик Гарфилда", price: 600, img: "https://img.icons8.com/emoji/512/cat-face.png" },
+        { id: "ac8", name: "🌿 Природный Ящик", price: 400, img: "https://img.icons8.com/emoji/512/evergreen-tree.png" },
+        { id: "ac9", name: "👑 Сказочные Герои", price: 1600, img: "https://img.icons8.com/emoji/512/crown-emoji.png" },
+        { id: "ac10", name: "🧱 Лего Кейс", price: 850, img: "https://img.icons8.com/emoji/512/bricks.png" },
+        { id: "ac11", name: "🧬 Кейс Биологии", price: 700, img: "https://img.icons8.com/emoji/512/dna-emoji.png" },
+        { id: "ac12", name: "📚 Школьный Ящик", price: 300, img: "https://img.icons8.com/emoji/512/books-emoji.png" },
+        { id: "ac13", name: "💖 Любовный Ящик (Premium)", price: 1000, img: "https://img.icons8.com/emoji/512/revolving-hearts.png" },
+        { id: "ac14", name: "👹 Ящик Шрека", price: 650, img: "https://img.icons8.com/emoji/512/ogre.png" },
+        { id: "ac15", name: "👻 Хэллоуинский Слайм", price: 850, img: "https://img.icons8.com/emoji/512/ghost-emoji.png" }
     ];
 
-    /* 15 КЕЙСІВ MM2 З ТОЧНИМИ ФОТО З ПАПКИ img */
     const mm2Cases = [
-        { id: "mc_free", name: "🎁 Free Case (48ч)", price: 0, isFree: true, img: "img/5350686776261025599.jpg" },
-        { id: "mc1", name: "❌ Ящик Люди Икс", price: 1500, img: "img/cd07132d-caca-41e5-b7f5-0d742c715b90.jpg" },
-        { id: "mc2", name: "⚡ Ящик Мстителей", price: 2000, img: "img/f2592f79-906f-47b8-96e6-2e1df99ff5ed.jpg" },
-        { id: "mc3", name: "💎 Разные Кристаллы", price: 1800, img: "img/34b6cefd-7b9c-4836-8b2b-0ab23708ff95.jpg" },
-        { id: "mc4", name: "✨ Божественный Ящик", price: 5000, img: "img/3af17372-b8cc-4b32-acae-d00f113b1930.jpg" },
-        { id: "mc5", name: "🌌 Космический Кейс", price: 3000, img: "img/4b882506-56fd-4ee3-94e6-f2ed7914da8d.jpg" },
-        { id: "mc6", name: "🏴‍☠️ Пиратский Сундук", price: 900, img: "img/50274d4c-595c-4c61-9f40-3887c1c298e6.jpg" },
-        { id: "mc7", name: "🎸 The Smiths & The Cure", price: 1400, img: "img/2WzLyyXGnT8XgEWEF0kh--0--YQUgs.webp" },
-        { id: "mc8", name: "🎃 Тыквенный Хэллоуин", price: 800, img: "img/Aq6byYdN2pw1su6LbojC--0--lvfkN.webp" },
-        { id: "mc9", name: "😈 Ящик Демонов", price: 3500, img: "img/MDbzbslQg3P9zd4N0MxU--0---yxD5.webp" },
-        { id: "mc10", name: "💻 Ящик Хакера", price: 2500, img: "img/QjS98WNMm0ZpJZIAD1F0--0--y1PAy.webp" },
-        { id: "mc11", name: "🔥 Огненный Ящик", price: 1200, img: "img/Sak82UN6dyOKRdKtjwqC--0--HPDX1.webp" },
-        { id: "mc12", name: "⛏️ Подземные Руды", price: 900, img: "img/omEppFKgYIGEPDGARdJU--0--S90hx.webp" },
-        { id: "mc13", name: "🤖 Киберпанк Кейс", price: 2800, img: "img/sGCQLyQZjv3RYMS1dcFw--0--ejhn-.webp" },
-        { id: "mc15", name: "👻 Хэллоуинский Кейс", price: 750, img: "img/a024b85b-fd2f-461b-812d-760f235a8d7f.jpg" }
+        { id: "mc_free", name: "🎁 Free Case (48ч)", price: 0, isFree: true, img: "https://img.icons8.com/emoji/512/wrapped-gift.png" },
+        { id: "mc1", name: "❌ Ящик Люди Икс", price: 1500, img: "https://img.icons8.com/emoji/512/cross-mark.png" },
+        { id: "mc2", name: "⚡ Ящик Мстителей", price: 2000, img: "https://img.icons8.com/emoji/512/high-voltage-emoji.png" },
+        { id: "mc3", name: "💎 Разные Кристаллы", price: 1800, img: "https://img.icons8.com/emoji/512/gem-stone.png" },
+        { id: "mc4", name: "✨ Божественный Ящик", price: 5000, img: "https://img.icons8.com/emoji/512/sparkles.png" },
+        { id: "mc5", name: "🌌 Космический Кейс", price: 3000, img: "https://img.icons8.com/emoji/512/milky-way.png" },
+        { id: "mc6", name: "🏴‍☠️ Пиратский Сундук", price: 900, img: "https://img.icons8.com/emoji/512/pirate-flag.png" },
+        { id: "mc7", name: "🎸 Rock Band Case", price: 1400, img: "https://img.icons8.com/emoji/512/guitar-emoji.png" },
+        { id: "mc8", name: "🎃 Тыквенный Хэллоуин", price: 800, img: "https://img.icons8.com/emoji/512/jack-o-lantern.png" },
+        { id: "mc9", name: "😈 Ящик Демонов", price: 3500, img: "https://img.icons8.com/emoji/512/smiling-face-with-horns.png" },
+        { id: "mc10", name: "💻 Ящик Хакера", price: 2500, img: "https://img.icons8.com/emoji/512/technologist.png" },
+        { id: "mc11", name: "🔥 Огненный Ящик", price: 1200, img: "https://img.icons8.com/emoji/512/fire.png" },
+        { id: "mc12", name: "⛏️ Подземные Руды", price: 900, img: "https://img.icons8.com/emoji/512/pick.png" },
+        { id: "mc13", name: "🤖 Киберпанк Кейс", price: 2800, img: "https://img.icons8.com/emoji/512/robot.png" },
+        { id: "mc15", name: "👻 Хэллоуинский Кейс", price: 750, img: "https://img.icons8.com/emoji/512/ghost-emoji.png" }
     ];
 
     function switchGameMode(mode) {
@@ -562,7 +567,7 @@
             container.innerHTML += `
                 <div class="case-card" onclick='openCaseModal(${JSON.stringify(c).replace(/'/g, "&apos;")})'>
                     <div class="case-title">${c.name}</div>
-                    <img class="case-img" src="${c.img}" onerror="this.src='https://img.icons8.com/isometric/512/treasure-chest.png'">
+                    <img class="case-img" src="${c.img}" onerror="this.src='${defaultImg}'">
                     <button class="btn-open ${isGreenClass}">${btnText}</button>
                 </div>
             `;
@@ -641,7 +646,7 @@
                         <div class="drop-badge-rarity ${rarityClass}">${item.rarity || 'RARE'}</div>
                         <div class="drop-badge-value">VAL ${item.value}</div>
                         <div class="drop-card-title">${item.name}</div>
-                        <img class="drop-card-img" src="${item.img}">
+                        <img class="drop-card-img" src="${item.img}" onerror="this.src='${defaultImg}'">
                     </div>
                 `;
             });
@@ -687,7 +692,7 @@
                 itemsSequence.push(randItem);
                 track.innerHTML += `
                     <div class="roulette-item">
-                        <img src="${randItem.img}">
+                        <img src="${randItem.img}" onerror="this.src='${defaultImg}'">
                         <span>${randItem.name.substring(0, 8)}..</span>
                     </div>
                 `;
@@ -719,10 +724,6 @@
                     if (!bestDrop || item.value > bestDrop.value) {
                         bestDrop = { ...item };
                     }
-
-                    if (tg && item.value >= 1000) {
-                        tg.sendData(JSON.stringify({ action: "drop_notify", item_name: item.name, value: item.value }));
-                    }
                 });
 
                 saveData();
@@ -735,6 +736,30 @@
 
             closeModal("case-open-modal");
         }, 4800);
+    }
+
+    function applyMultiplier(multiplier) {
+        if (!selectedUpItem) {
+            showToast("⚠️ Сначала выберите свой предмет!");
+            return;
+        }
+        const targetValue = selectedUpItem.value * multiplier;
+        const source = [...adoptPets, ...mm2Weapons];
+        
+        let closestItem = source.reduce((prev, curr) => {
+            return (Math.abs(curr.value - targetValue) < Math.abs(prev.value - targetValue) ? curr : prev);
+        });
+
+        selectedTargetItem = closestItem;
+        document.getElementById("slot-to").innerHTML = `<img src="${closestItem.img}"><span>${closestItem.name}</span>`;
+        calculateUpgradeChance();
+    }
+
+    function applyCustomMultiplier() {
+        const mult = parseFloat(document.getElementById("custom-mult-input").value);
+        if (mult && mult > 1) {
+            applyMultiplier(mult);
+        }
     }
 
     function filterShop() {
@@ -754,7 +779,7 @@
         source.slice(0, 40).forEach(p => {
             container.innerHTML += `
                 <div class="item-card">
-                    <img class="item-img" src="${p.img}">
+                    <img class="item-img" src="${p.img}" onerror="this.src='${defaultImg}'">
                     <div class="item-name">${p.name}</div>
                     <div class="item-value">Value: ${p.value.toLocaleString()}</div>
                     <button class="btn-open" onclick="buyItem('${p.name}', ${p.value}, '${p.img}')">Купить</button>
@@ -787,7 +812,7 @@
         currentInv.forEach((item, index) => {
             invContainer.innerHTML += `
                 <div class="item-card">
-                    <img class="item-img" src="${item.img}">
+                    <img class="item-img" src="${item.img}" onerror="this.src='${defaultImg}'">
                     <div class="item-name">${item.name}</div>
                     <div class="item-value">Value: ${item.value.toLocaleString()}</div>
                     <button class="btn-open" onclick="openWithdrawModal(${index})" style="background: linear-gradient(90deg, #11998e, #38ef7d); margin-bottom: 4px;">Вывести</button>
@@ -819,7 +844,7 @@
         if (nick) userNick = nick;
         if (avatarUrl) userAvatar = avatarUrl;
         saveData();
-        showToast("✅ Профиль успешно сохранён!");
+        showToast("✅ Профиль сохранён!");
     }
 
     function adminAddCoins(isAdd) {
@@ -852,7 +877,7 @@
             showToast(`🎉 Промокод активирован! Вы получили +${reward} Coins.`);
             document.getElementById("promo-input").value = "";
         } else {
-            showToast("❌ Неверный или уже использованный промокод!");
+            showToast("❌ Неверный промокод!");
         }
     }
 
@@ -872,12 +897,16 @@
         const amount = parseInt(document.getElementById("card-amount-input").value);
         if (!amount || amount < 50) return showToast("⚠️ Мин. сумма — 50 руб!");
         if (tg) tg.sendData(JSON.stringify({ action: "card_deposit_request", rub_amount: amount, coins: amount * 70 }));
-        showToast("💳 Заявка на пополнение отправлена!");
+        showToast("💳 Заявка отправлена администратору!");
         closeModal("deposit-modal");
     }
 
     function payWithStars(stars, coinsAmount) {
-        if (tg) tg.sendData(JSON.stringify({ action: "stars_buy_request", stars: stars, coins: coinsAmount }));
+        if (tg) {
+            tg.sendData(JSON.stringify({ action: "stars_buy_request", stars: stars, coins: coinsAmount }));
+        } else {
+            showToast("Откройте виджет внутри Telegram!");
+        }
     }
 
     function startWithdrawTimer() {
@@ -914,8 +943,6 @@
         if (tg) {
             tg.sendData(JSON.stringify({
                 action: "withdraw",
-                bot_username: `@${BOT_USERNAME}`,
-                admin_roblox: "Gol5621",
                 roblox_user: user,
                 item_name: item.name,
                 item_value: item.value
@@ -944,7 +971,7 @@
                 allUserItems.forEach((item) => {
                     container.innerHTML += `
                         <div class="item-card" onclick='selectPickerItem("inventory", ${JSON.stringify(item).replace(/'/g, "&apos;")})'>
-                            <img class="item-img" src="${item.img}">
+                            <img class="item-img" src="${item.img}" onerror="this.src='${defaultImg}'">
                             <div class="item-name">${item.name}</div>
                             <div class="item-value">Val: ${item.value.toLocaleString()}</div>
                         </div>
@@ -957,7 +984,7 @@
             allShopItems.forEach((item) => {
                 container.innerHTML += `
                     <div class="item-card" onclick='selectPickerItem("shop", ${JSON.stringify(item).replace(/'/g, "&apos;")})'>
-                        <img class="item-img" src="${item.img}">
+                        <img class="item-img" src="${item.img}" onerror="this.src='${defaultImg}'">
                         <div class="item-name">${item.name}</div>
                         <div class="item-value">Val: ${item.value.toLocaleString()}</div>
                     </div>
@@ -971,10 +998,10 @@
     function selectPickerItem(type, item) {
         if (type === 'inventory') {
             selectedUpItem = item;
-            document.getElementById("slot-from").innerHTML = `<img src="${item.img}"><span>${item.name}</span>`;
+            document.getElementById("slot-from").innerHTML = `<img src="${item.img}" onerror="this.src='${defaultImg}'"><span>${item.name}</span>`;
         } else {
             selectedTargetItem = item;
-            document.getElementById("slot-to").innerHTML = `<img src="${item.img}"><span>${item.name}</span>`;
+            document.getElementById("slot-to").innerHTML = `<img src="${item.img}" onerror="this.src='${defaultImg}'"><span>${item.name}</span>`;
         }
         calculateUpgradeChance();
         closeModal("picker-modal");
