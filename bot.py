@@ -13,7 +13,7 @@ from aiogram.types import (
 )
 
 # ==================== НАСТРОЙКИ ====================
-BOT_TOKEN = "ВАШ_ТОКЕН_БОТА_ЗДЕСЬ"  # Замените на токен вашего бота от @BotFather
+BOT_TOKEN = "8220061421:AAHqOFSyXM029zUAr_3hd2tXaOX19cwfJ6U"  # Замените на токен вашего бота от @BotFather
 ADMIN_ID = 7548882572                # Ваш Telegram ID для уведомлений и управления
 WEBAPP_URL = "https://domnageev-coder.github.io/casino-bot3/" # Ссылка на ваш WebApp (GitHub Pages)
 # ===================================================
