@@ -72,17 +72,18 @@
         .best-drop-box img { width: 45px; height: 45px; object-fit: contain; }
 
         .upgrader-box { background: #132238; border: 2px solid #00b4d8; border-radius: 18px; padding: 16px; text-align: center; margin-bottom: 12px; }
-        .upgrade-slots { display: flex; justify-content: space-around; align-items: center; margin-bottom: 16px; }
+        .upgrade-slots { display: flex; justify-content: space-around; align-items: center; margin-bottom: 12px; }
         .upgrade-slot { width: 110px; height: 110px; border: 2px dashed #00b4d8; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 11px; color: #90e0ef; padding: 6px; background: #08121e; cursor: pointer; }
         .upgrade-slot img { width: 55px; height: 55px; object-fit: contain; }
+        
+        .multiplier-bar { display: flex; gap: 6px; justify-content: center; margin-bottom: 12px; align-items: center; }
+        .mult-btn { background: #08121e; border: 1px solid #00b4d8; color: #72efdd; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px; }
+
         .wheel-wrapper { position: relative; width: 140px; height: 140px; margin: 0 auto 14px auto; }
         .wheel-circle { width: 100%; height: 100%; border-radius: 50%; background: conic-gradient(#72efdd 0deg, #ff4d4d 0deg 360deg); border: 4px solid #00b4d8; display: flex; align-items: center; justify-content: center; }
         .wheel-inner { width: 95px; height: 95px; border-radius: 50%; background: #08121e; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; color: #72efdd; z-index: 2; }
         .wheel-arrow { position: absolute; top: 0; left: 50%; width: 4px; height: 70px; margin-left: -2px; transform-origin: bottom center; z-index: 3; transition: transform 3s cubic-bezier(0.25, 0.1, 0.25, 1); }
         .wheel-arrow::before { content: ''; position: absolute; top: 0; left: -4px; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 12px solid #ffffff; }
-
-        .multiplier-bar { display: flex; gap: 6px; justify-content: center; margin-bottom: 10px; }
-        .mult-btn { background: #08121e; border: 1px solid #00b4d8; color: #72efdd; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 12px; }
 
         .balls-game-container { background: #132238; border: 2px solid #00b4d8; border-radius: 18px; padding: 12px; text-align: center; }
         canvas#plinko-canvas { background: #08121e; border-radius: 12px; border: 1px solid #00b4d8; display: block; margin: 0 auto 12px auto; }
@@ -249,7 +250,7 @@
             </div>
 
             <input type="text" class="input-field" id="nick-input" placeholder="Новый никнейм" style="margin-top: 12px;">
-            <input type="text" class="input-field" id="avatar-url-input" placeholder="Ссылка на аватар (URL)" style="margin-top: 6px;">
+            <input type="text" class="input-field" id="avatar-url-input" placeholder="Ссылка на ваш аватар (URL)" style="margin-top: 6px;">
             <button class="btn-open" onclick="saveProfileSettings()" style="margin-top: 8px; background: #72efdd; color: #08121e;">Сохранить профиль</button>
         </div>
     </div>
@@ -367,9 +368,10 @@
     </div>
 
 <script>
-    // ВАШ TELEGRAM ID
     const ADMIN_TELEGRAM_ID = 7548882572; 
     const BOT_USERNAME = "playadoptroblox_bot";
+    const defaultImg = "https://img.icons8.com/isometric/512/treasure-chest.png";
+
     const tg = window.Telegram ? window.Telegram.WebApp : null;
     if (tg) tg.expand();
 
@@ -412,8 +414,7 @@
         }, 3500);
     }
 
-    const defaultImg = "https://img.icons8.com/isometric/512/treasure-chest.png";
-
+    /* БАЗА ПРЕДМЕТОВ СО СМАЙЛИКАМИ */
     const adoptBasePets = [
         { name: "Shadow Dragon", val: 12500, rarity: "godly" }, { name: "Bat Dragon", val: 10800, rarity: "godly" },
         { name: "Giraffe", val: 8200, rarity: "godly" }, { name: "Frost Dragon", val: 6100, rarity: "godly" },
@@ -456,40 +457,42 @@
         });
     });
 
+    /* КЕЙСЫ ADOPT ME - ОТСОРТИРОВАНЫ ПО НАЗВАНИЯМ (FREE СНАЧАЛА) */
     const adoptCases = [
         { id: "ac_free", name: "🎁 Free Case (48ч)", price: 0, isFree: true, img: "https://img.icons8.com/emoji/512/wrapped-gift.png" },
-        { id: "ac1", name: "🦜 Попугай Кеша", price: 350, img: "https://img.icons8.com/emoji/512/parrot-emoji.png" },
-        { id: "ac3", name: "🇺🇦 Украинский Кейс", price: 1000, img: "https://img.icons8.com/emoji/512/flag-ukraine.png" },
-        { id: "ac4", name: "🐾 Тёмные Животные", price: 1200, img: "https://img.icons8.com/emoji/512/black-cat.png" },
-        { id: "ac5", name: "❤️ Любовный Ящик", price: 500, img: "https://img.icons8.com/emoji/512/growing-heart.png" },
-        { id: "ac6", name: "🐰 Ящик Кроликов", price: 450, img: "https://img.icons8.com/emoji/512/rabbit-face-emoji.png" },
         { id: "ac7", name: "🐱 Ящик Гарфилда", price: 600, img: "https://img.icons8.com/emoji/512/cat-face.png" },
+        { id: "ac6", name: "🐰 Ящик Кроликов", price: 450, img: "https://img.icons8.com/emoji/512/rabbit-face-emoji.png" },
+        { id: "ac14", name: "👹 Ящик Шрека", price: 650, img: "https://img.icons8.com/emoji/512/ogre.png" },
+        { id: "ac11", name: "🧬 Кейс Биологии", price: 700, img: "https://img.icons8.com/emoji/512/dna-emoji.png" },
+        { id: "ac10", name: "🧱 Лего Кейс", price: 850, img: "https://img.icons8.com/emoji/512/bricks.png" },
+        { id: "ac5", name: "❤️ Любовный Ящик", price: 500, img: "https://img.icons8.com/emoji/512/growing-heart.png" },
+        { id: "ac13", name: "💖 Любовный Ящик (Premium)", price: 1000, img: "https://img.icons8.com/emoji/512/revolving-hearts.png" },
+        { id: "ac1", name: "🦜 Попугай Кеша", price: 350, img: "https://img.icons8.com/emoji/512/parrot-emoji.png" },
         { id: "ac8", name: "🌿 Природный Ящик", price: 400, img: "https://img.icons8.com/emoji/512/evergreen-tree.png" },
         { id: "ac9", name: "👑 Сказочные Герои", price: 1600, img: "https://img.icons8.com/emoji/512/crown-emoji.png" },
-        { id: "ac10", name: "🧱 Лего Кейс", price: 850, img: "https://img.icons8.com/emoji/512/bricks.png" },
-        { id: "ac11", name: "🧬 Кейс Биологии", price: 700, img: "https://img.icons8.com/emoji/512/dna-emoji.png" },
-        { id: "ac12", name: "📚 Школьный Ящик", price: 300, img: "https://img.icons8.com/emoji/512/books-emoji.png" },
-        { id: "ac13", name: "💖 Любовный Ящик (Premium)", price: 1000, img: "https://img.icons8.com/emoji/512/revolving-hearts.png" },
-        { id: "ac14", name: "👹 Ящик Шрека", price: 650, img: "https://img.icons8.com/emoji/512/ogre.png" },
-        { id: "ac15", name: "👻 Хэллоуинский Слайм", price: 850, img: "https://img.icons8.com/emoji/512/ghost-emoji.png" }
+        { id: "ac4", name: "🐾 Тёмные Животные", price: 1200, img: "https://img.icons8.com/emoji/512/black-cat.png" },
+        { id: "ac3", name: "🇺🇦 Украинский Кейс", price: 1000, img: "https://img.icons8.com/emoji/512/flag-ukraine.png" },
+        { id: "ac15", name: "👻 Хэллоуинский Слайм", price: 850, img: "https://img.icons8.com/emoji/512/ghost-emoji.png" },
+        { id: "ac12", name: "📚 Школьный Ящик", price: 300, img: "https://img.icons8.com/emoji/512/books-emoji.png" }
     ];
 
+    /* КЕЙСЫ MM2 - ОТСОРТИРОВАНЫ ПО НАЗВАНИЯМ (FREE СНАЧАЛА) */
     const mm2Cases = [
         { id: "mc_free", name: "🎁 Free Case (48ч)", price: 0, isFree: true, img: "https://img.icons8.com/emoji/512/wrapped-gift.png" },
+        { id: "mc4", name: "✨ Божественный Ящик", price: 5000, img: "https://img.icons8.com/emoji/512/sparkles.png" },
+        { id: "mc13", name: "🤖 Киберпанк Кейс", price: 2800, img: "https://img.icons8.com/emoji/512/robot.png" },
+        { id: "mc5", name: "🌌 Космический Кейс", price: 3000, img: "https://img.icons8.com/emoji/512/milky-way.png" },
+        { id: "mc11", name: "🔥 Огненный Ящик", price: 1200, img: "https://img.icons8.com/emoji/512/fire.png" },
+        { id: "mc6", name: "🏴‍☠️ Пиратский Сундук", price: 900, img: "https://img.icons8.com/emoji/512/pirate-flag.png" },
+        { id: "mc12", name: "⛏️ Подземные Руды", price: 900, img: "https://img.icons8.com/emoji/512/pick.png" },
+        { id: "mc3", name: "💎 Разные Кристаллы", price: 1800, img: "https://img.icons8.com/emoji/512/gem-stone.png" },
+        { id: "mc8", name: "🎃 Тыквенный Хэллоуин", price: 800, img: "https://img.icons8.com/emoji/512/jack-o-lantern.png" },
+        { id: "mc15", name: "👻 Хэллоуинский Кейс", price: 750, img: "https://img.icons8.com/emoji/512/ghost-emoji.png" },
+        { id: "mc10", name: "💻 Ящик Хакера", price: 2500, img: "https://img.icons8.com/emoji/512/technologist.png" },
+        { id: "mc9", name: "😈 Ящик Демонов", price: 3500, img: "https://img.icons8.com/emoji/512/smiling-face-with-horns.png" },
         { id: "mc1", name: "❌ Ящик Люди Икс", price: 1500, img: "https://img.icons8.com/emoji/512/cross-mark.png" },
         { id: "mc2", name: "⚡ Ящик Мстителей", price: 2000, img: "https://img.icons8.com/emoji/512/high-voltage-emoji.png" },
-        { id: "mc3", name: "💎 Разные Кристаллы", price: 1800, img: "https://img.icons8.com/emoji/512/gem-stone.png" },
-        { id: "mc4", name: "✨ Божественный Ящик", price: 5000, img: "https://img.icons8.com/emoji/512/sparkles.png" },
-        { id: "mc5", name: "🌌 Космический Кейс", price: 3000, img: "https://img.icons8.com/emoji/512/milky-way.png" },
-        { id: "mc6", name: "🏴‍☠️ Пиратский Сундук", price: 900, img: "https://img.icons8.com/emoji/512/pirate-flag.png" },
-        { id: "mc7", name: "🎸 Rock Band Case", price: 1400, img: "https://img.icons8.com/emoji/512/guitar-emoji.png" },
-        { id: "mc8", name: "🎃 Тыквенный Хэллоуин", price: 800, img: "https://img.icons8.com/emoji/512/jack-o-lantern.png" },
-        { id: "mc9", name: "😈 Ящик Демонов", price: 3500, img: "https://img.icons8.com/emoji/512/smiling-face-with-horns.png" },
-        { id: "mc10", name: "💻 Ящик Хакера", price: 2500, img: "https://img.icons8.com/emoji/512/technologist.png" },
-        { id: "mc11", name: "🔥 Огненный Ящик", price: 1200, img: "https://img.icons8.com/emoji/512/fire.png" },
-        { id: "mc12", name: "⛏️ Подземные Руды", price: 900, img: "https://img.icons8.com/emoji/512/pick.png" },
-        { id: "mc13", name: "🤖 Киберпанк Кейс", price: 2800, img: "https://img.icons8.com/emoji/512/robot.png" },
-        { id: "mc15", name: "👻 Хэллоуинский Кейс", price: 750, img: "https://img.icons8.com/emoji/512/ghost-emoji.png" }
+        { id: "mc7", name: "🎸 Rock Band Case", price: 1400, img: "https://img.icons8.com/emoji/512/guitar-emoji.png" }
     ];
 
     function switchGameMode(mode) {
@@ -751,7 +754,7 @@
         });
 
         selectedTargetItem = closestItem;
-        document.getElementById("slot-to").innerHTML = `<img src="${closestItem.img}"><span>${closestItem.name}</span>`;
+        document.getElementById("slot-to").innerHTML = `<img src="${closestItem.img}" onerror="this.src='${defaultImg}'"><span>${closestItem.name}</span>`;
         calculateUpgradeChance();
     }
 
@@ -905,7 +908,7 @@
         if (tg) {
             tg.sendData(JSON.stringify({ action: "stars_buy_request", stars: stars, coins: coinsAmount }));
         } else {
-            showToast("Откройте виджет внутри Telegram!");
+            showToast("Откройте виджет в Telegram!");
         }
     }
 
