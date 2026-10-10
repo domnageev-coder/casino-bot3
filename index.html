@@ -904,12 +904,52 @@
         closeModal("deposit-modal");
     }
 
+    // ИСПРАВЛЕННАЯ ФУНКЦИЯ ПРЯМОЙ ОПЛАТЫ ЗВЕЗДАМИ ЧЕРЕЗ API ТЕЛЕГРАМА
     function payWithStars(stars, coinsAmount) {
-        if (tg) {
-            tg.sendData(JSON.stringify({ action: "stars_buy_request", stars: stars, coins: coinsAmount }));
-        } else {
-            showToast("Откройте виджет в Telegram!");
+        if (!tg) {
+            showToast("⚠️ Откройте приложение внутри Telegram!");
+            return;
         }
+
+        // Запрашиваем ссылку на оплату напрямую у Telegram Bot API
+        fetch("https://api.telegram.org/bot8220061421:AAHqOFSyXM029zUAr_3hd2tXaOX19cwfJ6U/createInvoiceLink", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                title: `Пополнение ${coinsAmount} Coins`,
+                description: `Покупка ${coinsAmount} монет за ${stars} Telegram Stars`,
+                payload: `stars_deposit_${coinsAmount}_${stars}`,
+                provider_token: "", // Обязательно пусто для звезд
+                currency: "XTR",     // Валюта Telegram Stars
+                prices: [{ label: `${coinsAmount} Coins`, amount: stars }]
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.ok && data.result) {
+                let invoiceUrl = data.result;
+                
+                // Открываем нативное всплывающее окно оплаты в Telegram!
+                tg.openInvoice(invoiceUrl, function(status) {
+                    if (status === 'paid') {
+                        showToast("🎉 Оплата успешна! Монеты зачислены.");
+                        coins += coinsAmount;
+                        saveData();
+                    } else if (status === 'cancelled') {
+                        console.log("Оплата отменена пользователем");
+                    } else {
+                        showToast("❌ Ошибка при оплате.");
+                    }
+                });
+            } else {
+                showToast("❌ Ошибка создания счета.");
+                console.error(data);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showToast("❌ Ошибка соединения с сервером.");
+        });
     }
 
     function startWithdrawTimer() {
