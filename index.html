@@ -8,28 +8,28 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; user-select: none; }
-        body { background-color: #08121e; color: #ffffff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 12px 12px 110px 12px; overflow-x: hidden; }
+        body { background-color: #08121e; color: #ffffff; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 12px 16px 110px 16px; overflow-x: hidden; width: 100%; }
         
-        #toast-container { position: fixed; top: 15px; left: 50%; transform: translateX(-50%); z-index: 1000; width: 90%; max-width: 400px; pointer-events: none; }
+        #toast-container { position: fixed; top: 15px; left: 50%; transform: translateX(-50%); z-index: 1000; width: 90%; max-width: 500px; pointer-events: none; }
         .toast { background: linear-gradient(135deg, #132238, #0a1726); border: 2px solid #00b4d8; color: #fff; padding: 12px 16px; border-radius: 14px; font-size: 13px; font-weight: bold; box-shadow: 0 8px 24px rgba(0, 180, 216, 0.4); text-align: center; margin-bottom: 8px; opacity: 0; transform: translateY(-20px) scale(0.9); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .toast.show { opacity: 1; transform: translateY(0) scale(1); }
 
-        .mode-selector { display: flex; gap: 6px; width: 100%; max-width: 440px; margin-bottom: 10px; }
-        .mode-btn { flex: 1; padding: 10px 6px; border-radius: 12px; border: 1px solid #00b4d8; background: #132238; color: #90e0ef; font-weight: bold; font-size: 12px; cursor: pointer; text-align: center; display: flex; align-items: center; justify-content: center; gap: 4px; }
-        .mode-btn.active { background: linear-gradient(90deg, #0077b6, #00b4d8); color: #fff; box-shadow: 0 0 10px rgba(0, 180, 216, 0.4); }
+        .mode-selector { display: flex; gap: 8px; width: 100%; max-width: 1200px; margin-bottom: 12px; }
+        .mode-btn { flex: 1; padding: 12px 10px; border-radius: 12px; border: 1px solid #00b4d8; background: #132238; color: #90e0ef; font-weight: bold; font-size: 13px; cursor: pointer; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .mode-btn.active { background: linear-gradient(90deg, #0077b6, #00b4d8); color: #fff; box-shadow: 0 0 12px rgba(0, 180, 216, 0.4); }
 
-        .page-tab { display: none; width: 100%; max-width: 440px; animation: fadeIn 0.3s ease-in-out forwards; }
+        .page-tab { display: none; width: 100%; max-width: 1200px; animation: fadeIn 0.3s ease-in-out forwards; }
         .page-tab.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-        .top-bar { width: 100%; max-width: 440px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #132238, #0a1726); padding: 12px 16px; border-radius: 16px; border: 1px solid #00b4d8; margin-bottom: 12px; }
-        .balance-container { display: flex; align-items: center; gap: 8px; }
-        .balance-box { font-size: 16px; font-weight: 700; color: #caf0f8; }
-        .add-coins-btn { background: #00b4d8; color: #fff; border: none; border-radius: 50%; width: 26px; height: 26px; font-weight: bold; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 8px rgba(0, 180, 216, 0.5); }
+        .top-bar { width: 100%; max-width: 1200px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #132238, #0a1726); padding: 14px 20px; border-radius: 16px; border: 1px solid #00b4d8; margin-bottom: 16px; }
+        .balance-container { display: flex; align-items: center; gap: 10px; }
+        .balance-box { font-size: 18px; font-weight: 700; color: #caf0f8; }
+        .add-coins-btn { background: #00b4d8; color: #fff; border: none; border-radius: 50%; width: 30px; height: 30px; font-weight: bold; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 8px rgba(0, 180, 216, 0.5); }
 
-        /* MINECRAFT GAME STYLES */
+        /* FULLSCREEN MINECRAFT VIEWPORT */
         .mc-viewport {
-            position: relative; width: 100%; height: 420px; border-radius: 20px;
+            position: relative; width: 100%; height: 70vh; min-height: 450px; border-radius: 20px;
             overflow: hidden; border: 3px solid #38bdf8; box-shadow: 0 12px 32px rgba(0,0,0,0.6);
             background: #38bdf8; cursor: grab;
         }
@@ -43,40 +43,42 @@
             transition: transform 0.05s ease-out;
         }
 
-        .mc-island { position: absolute; width: 140px; height: 50px; background: #636e72; border-radius: 50% 50% 10% 10%; box-shadow: 0 10px 0 #2d3436; }
-        .mc-island::before { content: ''; position: absolute; top: -8px; left: 10px; width: 120px; height: 14px; background: #00b894; border-radius: 8px; }
-        .mc-tree { position: absolute; top: -30px; left: 30px; width: 12px; height: 26px; background: #b2bec3; }
-        .mc-tree::before { content: ''; position: absolute; top: -22px; left: -16px; width: 44px; height: 26px; background: #00b894; border-radius: 8px; }
+        .mc-island { position: absolute; width: 180px; height: 60px; background: #636e72; border-radius: 50% 50% 10% 10%; box-shadow: 0 10px 0 #2d3436; }
+        .mc-island::before { content: ''; position: absolute; top: -10px; left: 12px; width: 156px; height: 16px; background: #00b894; border-radius: 8px; }
+        .mc-tree { position: absolute; top: -38px; left: 40px; width: 16px; height: 32px; background: #b2bec3; }
+        .mc-tree::before { content: ''; position: absolute; top: -28px; left: -20px; width: 56px; height: 32px; background: #00b894; border-radius: 10px; }
 
-        .mc-hud-top { position: absolute; top: 12px; left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; z-index: 20; }
-        .mc-btn-pill { background: #ffffff; color: #0f172a; border: none; padding: 6px 14px; border-radius: 20px; font-weight: 800; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .mc-hud-top { position: absolute; top: 16px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: center; z-index: 20; }
+        .mc-btn-pill { background: #ffffff; color: #0f172a; border: none; padding: 8px 18px; border-radius: 20px; font-weight: 800; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 
-        .mc-mode-switcher { position: absolute; top: 56px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.85); backdrop-filter: blur(8px); padding: 3px; border-radius: 18px; display: flex; gap: 4px; z-index: 20; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .mc-mode-subbtn { border: none; background: transparent; padding: 5px 12px; border-radius: 14px; font-size: 11px; font-weight: 800; color: #636e72; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        .mc-mode-switcher { position: absolute; top: 64px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.85); backdrop-filter: blur(8px); padding: 4px; border-radius: 18px; display: flex; gap: 6px; z-index: 20; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .mc-mode-subbtn { border: none; background: transparent; padding: 6px 14px; border-radius: 14px; font-size: 12px; font-weight: 800; color: #636e72; cursor: pointer; display: flex; align-items: center; gap: 4px; }
         .mc-mode-subbtn.active { background: #ffffff; color: #0284c7; box-shadow: 0 2px 6px rgba(0,0,0,0.15); }
 
         .mc-block-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; z-index: 10; }
-        .mc-block-box { position: relative; width: 130px; height: 130px; cursor: pointer; transition: transform 0.1s ease; }
+        .mc-block-box { position: relative; width: 160px; height: 160px; cursor: pointer; transition: transform 0.1s ease; }
         .mc-block-box:active { transform: scale(0.92); }
         .mc-block-img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; filter: drop-shadow(0 15px 15px rgba(0,0,0,0.5)); }
         .mc-crack { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0; image-rendering: pixelated; }
 
-        .mc-pickaxe-hand { position: absolute; right: -35px; bottom: -15px; width: 80px; height: 80px; pointer-events: none; transform: rotate(0deg); transform-origin: bottom left; transition: transform 0.1s ease; image-rendering: pixelated; }
+        .mc-pickaxe-hand { position: absolute; right: -45px; bottom: -20px; width: 100px; height: 100px; pointer-events: none; transform: rotate(0deg); transform-origin: bottom left; transition: transform 0.1s ease; image-rendering: pixelated; }
         .mc-pickaxe-hand.swing { transform: rotate(-45deg); }
 
-        .mc-price-pill { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(15, 23, 42, 0.85); color: #fff; padding: 5px 12px; border-radius: 16px; font-weight: 900; font-size: 14px; border: 2px solid rgba(255,255,255,0.25); display: flex; align-items: center; gap: 6px; pointer-events: none; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
-        .mc-bottom-hint { position: absolute; bottom: 14px; left: 0; right: 0; text-align: center; color: #ffffff; font-weight: 800; font-size: 12px; text-shadow: 0 2px 4px rgba(0,0,0,0.7); z-index: 20; }
+        .mc-price-pill { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(15, 23, 42, 0.85); color: #fff; padding: 6px 16px; border-radius: 18px; font-weight: 900; font-size: 16px; border: 2px solid rgba(255,255,255,0.25); display: flex; align-items: center; gap: 8px; pointer-events: none; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
+        .mc-bottom-hint { position: absolute; bottom: 16px; left: 0; right: 0; text-align: center; color: #ffffff; font-weight: 800; font-size: 14px; text-shadow: 0 2px 4px rgba(0,0,0,0.7); z-index: 20; }
 
-        .search-box { width: 100%; margin-bottom: 12px; display: flex; gap: 6px; flex-direction: column; }
-        .search-input, .select-input { width: 100%; padding: 10px 14px; border-radius: 12px; border: 1px solid #00b4d8; background: #132238; color: #fff; font-size: 13px; outline: none; }
-        .filter-row { display: flex; gap: 6px; }
+        /* GRID STYLES FOR PC RESPONSIVENESS */
+        .search-box { width: 100%; margin-bottom: 14px; display: flex; gap: 8px; flex-direction: column; }
+        .search-input, .select-input { width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid #00b4d8; background: #132238; color: #fff; font-size: 14px; outline: none; }
+        .filter-row { display: flex; gap: 8px; }
 
-        .cases-grid, .items-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
-        .case-card, .item-card { background: linear-gradient(145deg, #132238, #0a1726); border: 2px solid #00b4d8; border-radius: 14px; padding: 10px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; }
+        .cases-grid, .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; width: 100%; }
+        .case-card, .item-card { background: linear-gradient(145deg, #132238, #0a1726); border: 2px solid #00b4d8; border-radius: 16px; padding: 12px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; transition: transform 0.2s ease; }
+        .case-card:hover, .item-card:hover { transform: translateY(-4px); }
 
-        .case-title, .item-name { color: #90e0ef; font-size: 12px; font-weight: 700; margin-bottom: 4px; min-height: 28px; display: flex; align-items: center; justify-content: center; }
-        .case-img, .item-img { width: 65px; height: 65px; object-fit: contain; margin: 0 auto 6px auto; }
-        .item-value { color: #72efdd; font-size: 11px; font-weight: bold; margin-bottom: 6px; }
+        .case-title, .item-name { color: #90e0ef; font-size: 13px; font-weight: 700; margin-bottom: 6px; min-height: 32px; display: flex; align-items: center; justify-content: center; }
+        .case-img, .item-img { width: 80px; height: 80px; object-fit: contain; margin: 0 auto 8px auto; }
+        .item-value { color: #72efdd; font-size: 12px; font-weight: bold; margin-bottom: 8px; }
 
         .btn-open { background: linear-gradient(90deg, #0077b6, #00b4d8); color: #ffffff; border: none; border-radius: 10px; padding: 10px; width: 100%; font-size: 13px; font-weight: 700; cursor: pointer; }
         .btn-open.btn-free-green { background: linear-gradient(90deg, #2ecc71, #27ae60) !important; color: #fff !important; }
@@ -129,11 +131,11 @@
         canvas#plinko-canvas { background: #08121e; border-radius: 12px; border: 1px solid #00b4d8; display: block; margin: 0 auto 12px auto; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(8, 18, 30, 0.92); backdrop-filter: blur(4px); z-index: 200; padding: 16px; justify-content: center; align-items: center; }
-        .modal-content { background: #132238; border: 2px solid #00b4d8; border-radius: 20px; padding: 18px; width: 100%; max-width: 420px; max-height: 85vh; overflow-y: auto; text-align: center; }
+        .modal-content { background: #132238; border: 2px solid #00b4d8; border-radius: 20px; padding: 18px; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; text-align: center; }
         .profile-avatar { width: 80px; height: 80px; border-radius: 50%; border: 3px solid #00b4d8; object-fit: cover; margin-bottom: 10px; }
 
-        .navbar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(19, 34, 56, 0.95); backdrop-filter: blur(10px); border-top: 2px solid #00b4d8; display: flex; justify-content: space-around; padding: 10px 0 14px 0; z-index: 100; }
-        .nav-item { color: #90e0ef; background: none; border: none; font-size: 10px; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; width: 14%; }
+        .navbar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(19, 34, 56, 0.95); backdrop-filter: blur(10px); border-top: 2px solid #00b4d8; display: flex; justify-content: center; gap: 12px; padding: 10px 0 14px 0; z-index: 100; }
+        .nav-item { color: #90e0ef; background: none; border: none; font-size: 11px; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; padding: 0 12px; }
         .nav-item.active { color: #72efdd; }
         .input-field { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #00b4d8; background: #08121e; color: #fff; text-align: center; margin-top: 6px; }
         .timer-display { font-size: 24px; font-weight: bold; color: #f59e0b; background: #08121e; padding: 8px; border-radius: 10px; border: 1px dashed #f59e0b; margin: 10px 0; }
@@ -142,8 +144,13 @@
         .pay-tab-btn { flex: 1; padding: 8px; border: none; border-radius: 8px; background: transparent; color: #90e0ef; font-weight: bold; cursor: pointer; font-size: 12px; }
         .pay-tab-btn.active { background: #00b4d8; color: #fff; }
 
+        .currency-switch { display: flex; gap: 8px; justify-content: center; margin: 10px 0; }
+        .curr-btn { padding: 6px 14px; border: 1px solid #00b4d8; background: #08121e; color: #90e0ef; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 12px; }
+        .curr-btn.active { background: #00b4d8; color: #fff; }
+
         .avatar-preset-btn { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #00b4d8; cursor: pointer; object-fit: cover; }
         .admin-badge { position: fixed; top: 12px; right: 12px; background: #e74c3c; color: #fff; font-size: 10px; font-weight: bold; padding: 4px 8px; border-radius: 8px; z-index: 999; cursor: pointer; }
+        .crypto-address-box { background: #08121e; border: 1px dashed #00b4d8; padding: 10px; border-radius: 10px; word-break: break-all; font-size: 11px; color: #72efdd; margin: 8px 0; user-select: text; }
     </style>
 </head>
 <body>
@@ -161,7 +168,7 @@
             <div class="balance-box">Баланс: <span id="coins">1000</span> 🪙</div>
             <button class="add-coins-btn" onclick="openModal('deposit-modal')">➕</button>
         </div>
-        <button class="mode-btn" style="padding: 6px 12px; font-size: 12px; flex: none;" onclick="switchTab('profile-tab')">👤 Профиль</button>
+        <button class="mode-btn" style="padding: 6px 16px; font-size: 12px; flex: none;" onclick="switchTab('profile-tab')">👤 Профиль</button>
     </div>
 
     <!-- CASES TAB -->
@@ -360,24 +367,43 @@
         </div>
     </div>
 
+    <!-- REPLACED DEPOSIT MODAL WITH TONKEEPER / CRYPTO INTEGRATION -->
     <div id="deposit-modal" class="modal">
         <div class="modal-content">
             <div style="color: #00b4d8; font-weight: bold; font-size: 18px; margin-bottom: 10px;">💳 Пополнение баланса</div>
             
             <div class="pay-tab-bar">
-                <button class="pay-tab-btn active" id="pay-btn-card" onclick="switchPayTab('card')">Карта / СБП</button>
+                <button class="pay-tab-btn active" id="pay-btn-crypto" onclick="switchPayTab('crypto')">Криптовалюта (TON / USDT)</button>
                 <button class="pay-tab-btn" id="pay-btn-stars" onclick="switchPayTab('stars')">Telegram Stars ⭐</button>
             </div>
 
-            <div id="pay-block-card">
-                <p style="font-size: 12px; color: #caf0f8; margin-bottom: 6px;">Переведите сумму на карту:</p>
-                <b style="color:#72efdd; font-size: 16px; display: block; margin: 4px 0; user-select: text;">4441 1111 4806 4060</b>
-                <p style="font-size: 11px; color: #90e0ef; margin-bottom: 8px;">Курс: 1 Рубль = 70 Coins</p>
-                <input type="number" id="card-amount-input" class="input-field" placeholder="Сумма в рублях (мин. 50)" oninput="calcCardCoins()">
-                <div style="font-size: 12px; color: #72efdd; margin: 8px 0;">Вы получите: <b id="card-coins-calc">0</b> Coins</div>
-                <button class="btn-open" onclick="submitCardPayment()">Я оплатил(а)</button>
+            <!-- CRYPTO DEPOSIT BLOCK -->
+            <div id="pay-block-crypto">
+                <p style="font-size: 12px; color: #caf0f8; margin-bottom: 6px;">Выберите валюту ввода:</p>
+                
+                <div class="currency-switch">
+                    <button class="curr-btn active" id="curr-rub" onclick="setCryptoCurrency('RUB')">🇷🇺 RUB (₽)</button>
+                    <button class="curr-btn" id="curr-uah" onclick="setCryptoCurrency('UAH')">🇺🇦 UAH (₴)</button>
+                </div>
+
+                <p style="font-size: 11px; color: #90e0ef;" id="rate-info">Курс: 1 RUB = 70 Coins</p>
+
+                <input type="number" id="crypto-amount-input" class="input-field" placeholder="Введите сумму" oninput="calcCryptoCoins()">
+                
+                <div style="background: #08121e; padding: 10px; border-radius: 12px; border: 1px solid #00b4d8; margin: 10px 0;">
+                    <div style="font-size: 12px; color: #caf0f8;">Начисление: <b id="crypto-coins-calc" style="color:#72efdd;">0</b> Coins</div>
+                    <div style="font-size: 11px; color: #90e0ef; margin-top: 4px;">К оплате в TON: <b id="crypto-ton-calc" style="color:#38bdf8;">0 TON</b></div>
+                    <div style="font-size: 11px; color: #90e0ef; margin-top: 2px;">Или USDT (TON network): <b id="crypto-usdt-calc" style="color:#2ecc71;">0 USDT</b></div>
+                </div>
+
+                <div style="font-size: 11px; color: #caf0f8; text-align: left; margin-bottom: 4px;">Ваш Tonkeeper / TON кошелек:</div>
+                <div class="crypto-address-box" id="wallet-address">UQAYVU4xp8_xA_fg0DHnmE8YoKte8K9h_No4PVwKn2_2dPp3</div>
+
+                <button class="btn-open" onclick="payViaTonkeeper()" style="background: linear-gradient(90deg, #0088cc, #00b4d8); margin-bottom: 6px;">💎 Оплатить через Tonkeeper</button>
+                <button class="btn-open" onclick="confirmCryptoPaid()" style="background: #2ecc71;">✅ Я перевел(а) средства</button>
             </div>
 
+            <!-- STARS DEPOSIT BLOCK -->
             <div id="pay-block-stars" style="display: none;">
                 <p style="font-size: 12px; color: #caf0f8; margin-bottom: 8px;">Выберите пакет Звёзд:</p>
                 <div style="display: flex; flex-direction: column; gap: 6px;">
@@ -452,10 +478,14 @@
 <script>
     const ADMIN_TELEGRAM_ID = 7548882572; 
     const BOT_USERNAME = "playadoptroblox_bot";
+    const TON_WALLET = "UQAYVU4xp8_xA_fg0DHnmE8YoKte8K9h_No4PVwKn2_2dPp3";
     const defaultImg = "https://img.icons8.com/isometric/512/treasure-chest.png";
 
     const tg = window.Telegram ? window.Telegram.WebApp : null;
-    if (tg) tg.expand();
+    if (tg) {
+        tg.expand();
+        if (tg.requestFullscreen) tg.requestFullscreen();
+    }
 
     let currentUserId = tg && tg.initDataUnsafe && tg.initDataUnsafe.user ? tg.initDataUnsafe.user.id : 0;
     if (currentUserId === ADMIN_TELEGRAM_ID || currentUserId === 0) {
@@ -464,6 +494,7 @@
 
     let currentMode = "adopt";
     let mcDropPool = "adopt";
+    let cryptoCurrency = "RUB";
     let coins = parseInt(localStorage.getItem("coins")) || 1000;
     let openedCount = parseInt(localStorage.getItem("openedCount")) || 0;
     let lastFreeTime = parseInt(localStorage.getItem("lastFreeTime")) || 0;
@@ -660,7 +691,6 @@
 
         coins -= block.price;
 
-        // ХУДШИЙ ДРОП (85% выпадает предмет дешевле стоимости блока)
         const pool = mcDropPool === 'adopt' ? adoptPets : mm2Weapons;
         let droppedItem;
         if (Math.random() > 0.15) {
@@ -683,6 +713,60 @@
 
         currentMcBlockIndex = Math.floor(Math.random() * mcBlocksList.length);
         renderMcBlock();
+    }
+
+    function setCryptoCurrency(curr) {
+        cryptoCurrency = curr;
+        document.getElementById("curr-rub").classList.toggle("active", curr === "RUB");
+        document.getElementById("curr-uah").classList.toggle("active", curr === "UAH");
+        document.getElementById("rate-info").innerText = curr === "RUB" ? "Курс: 1 RUB = 70 Coins" : "Курс: 1 UAH = 170 Coins";
+        calcCryptoCoins();
+    }
+
+    function calcCryptoCoins() {
+        const val = parseFloat(document.getElementById("crypto-amount-input").value) || 0;
+        let earnedCoins = 0;
+        let tonPrice = 0;
+        let usdtPrice = 0;
+
+        if (cryptoCurrency === "RUB") {
+            earnedCoins = Math.floor(val * 70);
+            tonPrice = (val / 500).toFixed(2); // Примерный эквивалент TON
+            usdtPrice = (val / 95).toFixed(2); // Примерный эквивалент USDT
+        } else {
+            earnedCoins = Math.floor(val * 170);
+            tonPrice = (val / 220).toFixed(2);
+            usdtPrice = (val / 41).toFixed(2);
+        }
+
+        document.getElementById("crypto-coins-calc").innerText = earnedCoins.toLocaleString();
+        document.getElementById("crypto-ton-calc").innerText = `${tonPrice} TON`;
+        document.getElementById("crypto-usdt-calc").innerText = `${usdtPrice} USDT`;
+    }
+
+    function payViaTonkeeper() {
+        const val = parseFloat(document.getElementById("crypto-amount-input").value);
+        if (!val || val <= 0) return showToast("⚠️ Введите сумму оплаты!");
+        
+        let tonAmount = (cryptoCurrency === "RUB" ? val / 500 : val / 220).toFixed(2);
+        let nanoTon = Math.floor(tonAmount * 1e9);
+
+        // Перенаправление напрямую в Tonkeeper через Deep Link
+        let link = `ton://transfer/${TON_WALLET}?amount=${nanoTon}&text=PixelDrop_Deposit`;
+        window.location.href = link;
+        showToast("🚀 Открываем Tonkeeper для перевода...");
+    }
+
+    function confirmCryptoPaid() {
+        const val = parseFloat(document.getElementById("crypto-amount-input").value);
+        if (!val || val <= 0) return showToast("⚠️ Введите сумму оплаты!");
+
+        let earnedCoins = cryptoCurrency === "RUB" ? Math.floor(val * 70) : Math.floor(val * 170);
+        coins += earnedCoins;
+        saveData();
+
+        showToast(`🎉 Оплата прошла успешно! Зачислено +${earnedCoins.toLocaleString()} Coins.`);
+        closeModal("deposit-modal");
     }
 
     function saveData() {
@@ -991,7 +1075,7 @@
         const currentInv = currentMode === "adopt" ? inventoryAdopt : inventoryMM2;
 
         if (currentInv.length === 0) {
-            invContainer.innerHTML = `<p style="grid-column: span 2; text-align: center; color: #90e0ef; padding: 20px;">Инвентарь пуст</p>`;
+            invContainer.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: #90e0ef; padding: 20px;">Инвентарь пуст</p>`;
             return;
         }
 
@@ -1068,23 +1152,10 @@
     }
 
     function switchPayTab(tab) {
-        document.getElementById("pay-block-card").style.display = tab === 'card' ? 'block' : 'none';
+        document.getElementById("pay-block-crypto").style.display = tab === 'crypto' ? 'block' : 'none';
         document.getElementById("pay-block-stars").style.display = tab === 'stars' ? 'block' : 'none';
-        document.getElementById("pay-btn-card").classList.toggle('active', tab === 'card');
+        document.getElementById("pay-btn-crypto").classList.toggle('active', tab === 'crypto');
         document.getElementById("pay-btn-stars").classList.toggle('active', tab === 'stars');
-    }
-
-    function calcCardCoins() {
-        const val = parseInt(document.getElementById("card-amount-input").value) || 0;
-        document.getElementById("card-coins-calc").innerText = (val * 70).toLocaleString();
-    }
-
-    function submitCardPayment() {
-        const amount = parseInt(document.getElementById("card-amount-input").value);
-        if (!amount || amount < 50) return showToast("⚠️ Мин. сумма — 50 руб!");
-        if (tg) tg.sendData(JSON.stringify({ action: "card_deposit_request", rub_amount: amount, coins: amount * 70 }));
-        showToast("💳 Заявка отправлена администратору!");
-        closeModal("deposit-modal");
     }
 
     function payWithStars(stars, coinsAmount) {
@@ -1188,7 +1259,7 @@
             ];
 
             if (allUserItems.length === 0) {
-                container.innerHTML = `<p style="grid-column: span 2; color: #ff4d4d;">Инвентарь пуст!</p>`;
+                container.innerHTML = `<p style="grid-column: 1 / -1; color: #ff4d4d;">Инвентарь пуст!</p>`;
             } else {
                 allUserItems.forEach((item) => {
                     container.innerHTML += `
