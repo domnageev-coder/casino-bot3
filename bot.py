@@ -116,7 +116,7 @@ async def handle_webapp_data(message: types.Message):
             await message.answer("✅ Заявка отправлена администратору на проверку!")
 
         elif action == "stars_buy_request":
-            stars = data.get("stars")
+            stars = int(data.get("stars")) # Превращаем в число, чтобы Telegram не выдавал ошибку
             coins = data.get("coins")
 
             prices = [LabeledPrice(label=f"{coins} Coins", amount=stars)]
@@ -148,13 +148,15 @@ async def process_successful_payment(message: types.Message):
         parts = payload.split("_")
         coins = parts[2]
         stars = parts[3]
+        user_id = message.from_user.id
 
-        await message.answer(f"🎉 **Оплата успешна!** Вам начислено +{coins} Coins!")
+        # Отправляем пользователю подтверждение об успешной оплате и начислении
+        await message.answer(f"🎉 **Оплата успешна!** Вам зачислено +{coins} Coins 🪙")
         
         # Уведомление администратору о полученных Звёздах
         admin_msg = (
             f"⭐ **ПОЛУЧЕНЫ TELEGRAM STARS!**\n\n"
-            f"👤 **От:** @{message.from_user.username or 'без_юзернейма'} (ID: `{message.from_user.id}`)\n"
+            f"👤 **От:** @{message.from_user.username or 'без_юзернейма'} (ID: `{user_id}`)\n"
             f"⭐ **Получено звёзд:** {stars} Stars\n"
             f"🪙 **Выдано Coins:** {coins} Coins"
         )
