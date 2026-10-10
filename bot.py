@@ -24,7 +24,6 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-# Обновленная клавиатура (без "Партнерство" и "Предложить рекламу")
 def get_main_keyboard():
     keyboard = ReplyKeyboardMarkup(
         keyboard=[
@@ -54,7 +53,6 @@ async def start_cmd(message: types.Message):
         parse_mode="Markdown"
     )
 
-# Кнопка Канал
 @dp.message(F.text == "📢 Канал")
 async def channel_cmd(message: types.Message):
     kb = InlineKeyboardMarkup(inline_keyboard=[
@@ -62,7 +60,6 @@ async def channel_cmd(message: types.Message):
     ])
     await message.answer("Подписывайтесь на наш официальный канал:", reply_markup=kb)
 
-# Кнопка Чат
 @dp.message(F.text == "💬 Чат")
 async def chat_cmd(message: types.Message):
     kb = InlineKeyboardMarkup(inline_keyboard=[
@@ -70,7 +67,6 @@ async def chat_cmd(message: types.Message):
     ])
     await message.answer("Общайтесь в нашем комьюнити-чате:", reply_markup=kb)
 
-# Кнопка Обратная связь (Перекидывает напрямую на ваш профиль @hoikafun)
 @dp.message(F.text == "💬 Обратная связь")
 async def feedback_cmd(message: types.Message):
     kb = InlineKeyboardMarkup(inline_keyboard=[
@@ -78,7 +74,7 @@ async def feedback_cmd(message: types.Message):
     ])
     await message.answer("По всем вопросам и проблемам обращайтесь к нам:", reply_markup=kb)
 
-# Обработка заявок из WebApp
+# Обработка заявок и запросов из WebApp
 @dp.message(F.web_app_data)
 async def handle_webapp_data(message: types.Message):
     try:
@@ -116,19 +112,23 @@ async def handle_webapp_data(message: types.Message):
             await message.answer("✅ Заявка отправлена администратору на проверку!")
 
         elif action == "stars_buy_request":
-            stars = int(data.get("stars")) # Превращаем в число, чтобы Telegram не выдавал ошибку
+            stars = int(data.get("stars"))
             coins = data.get("coins")
 
             prices = [LabeledPrice(label=f"{coins} Coins", amount=stars)]
-            await bot.send_invoice(
-                chat_id=message.chat.id,
+            
+            # Генерируем специальную ссылку на оплату для WebApp
+            invoice_link = await bot.create_invoice_link(
                 title=f"Пополнение {coins} Coins",
                 description=f"Покупка {coins} Coins за {stars} Telegram Stars",
                 payload=f"stars_deposit_{coins}_{stars}",
-                provider_token="", # Оставляем пустым для Telegram Stars (XTR)
+                provider_token="", 
                 currency="XTR",
                 prices=prices
             )
+
+            # Отправляем ссылку обратно в WebApp, чтобы сайт открыл нативное окно оплаты
+            await message.answer(f"__INVOICE_LINK__{invoice_link}")
 
     except Exception as e:
         logging.error(f"Ошибка при обработке WebApp Data: {e}")
@@ -138,7 +138,7 @@ async def handle_webapp_data(message: types.Message):
 async def process_pre_checkout_query(pre_checkout_query: PreCheckoutQuery):
     await bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True)
 
-# Успешная оплата Telegram Stars
+# Успешная оплата Telegram Stars (Автоматическое начисление)
 @dp.message(F.successful_payment)
 async def process_successful_payment(message: types.Message):
     payment = message.successful_payment
@@ -150,10 +150,10 @@ async def process_successful_payment(message: types.Message):
         stars = parts[3]
         user_id = message.from_user.id
 
-        # Отправляем пользователю подтверждение об успешной оплате и начислении
+        # Успешное сообщение пользователю
         await message.answer(f"🎉 **Оплата успешна!** Вам зачислено +{coins} Coins 🪙")
         
-        # Уведомление администратору о полученных Звёздах
+        # Уведомление администратору
         admin_msg = (
             f"⭐ **ПОЛУЧЕНЫ TELEGRAM STARS!**\n\n"
             f"👤 **От:** @{message.from_user.username or 'без_юзернейма'} (ID: `{user_id}`)\n"
@@ -164,10 +164,6 @@ async def process_successful_payment(message: types.Message):
 
 async def main():
     await dp.start_polling(bot)
-
-if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())
 
 if __name__ == "__main__":
     import asyncio
