@@ -8,7 +8,6 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     InlineKeyboardButton,
     WebAppInfo,
-    LabeledPrice,
     PreCheckoutQuery
 )
 
@@ -74,7 +73,7 @@ async def feedback_cmd(message: types.Message):
     ])
     await message.answer("По всем вопросам и проблемам обращайтесь к нам:", reply_markup=kb)
 
-# Обработка заявок и запросов из WebApp
+# Обработка заявок (вывод предметов и пополнение картой)
 @dp.message(F.web_app_data)
 async def handle_webapp_data(message: types.Message):
     try:
@@ -111,34 +110,15 @@ async def handle_webapp_data(message: types.Message):
             await bot.send_message(chat_id=ADMIN_ID, text=admin_msg, parse_mode="Markdown")
             await message.answer("✅ Заявка отправлена администратору на проверку!")
 
-        elif action == "stars_buy_request":
-            stars = int(data.get("stars"))
-            coins = data.get("coins")
-
-            prices = [LabeledPrice(label=f"{coins} Coins", amount=stars)]
-            
-            # Генерируем специальную ссылку на оплату для WebApp
-            invoice_link = await bot.create_invoice_link(
-                title=f"Пополнение {coins} Coins",
-                description=f"Покупка {coins} Coins за {stars} Telegram Stars",
-                payload=f"stars_deposit_{coins}_{stars}",
-                provider_token="", 
-                currency="XTR",
-                prices=prices
-            )
-
-            # Отправляем ссылку обратно в WebApp, чтобы сайт открыл нативное окно оплаты
-            await message.answer(f"__INVOICE_LINK__{invoice_link}")
-
     except Exception as e:
         logging.error(f"Ошибка при обработке WebApp Data: {e}")
 
-# Пре-чек платежа Telegram Stars
+# Пре-чек платежа Telegram Stars (обязательно для работы оплаты)
 @dp.pre_checkout_query()
 async def process_pre_checkout_query(pre_checkout_query: PreCheckoutQuery):
     await bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True)
 
-# Успешная оплата Telegram Stars (Автоматическое начисление)
+# Успешная оплата Telegram Stars (Отправка уведомления админу)
 @dp.message(F.successful_payment)
 async def process_successful_payment(message: types.Message):
     payment = message.successful_payment
@@ -150,20 +130,21 @@ async def process_successful_payment(message: types.Message):
         stars = parts[3]
         user_id = message.from_user.id
 
-        # Успешное сообщение пользователю
-        await message.answer(f"🎉 **Оплата успешна!** Вам зачислено +{coins} Coins 🪙")
-        
-        # Уведомление администратору
+        # Уведомление администратору о пополнении звёздами
         admin_msg = (
-            f"⭐ **ПОЛУЧЕНЫ TELEGRAM STARS!**\n\n"
+            f"⭐ **УСПЕШНАЯ ОПЛАТА TELEGRAM STARS!**\n\n"
             f"👤 **От:** @{message.from_user.username or 'без_юзернейма'} (ID: `{user_id}`)\n"
-            f"⭐ **Получено звёзд:** {stars} Stars\n"
+            f"⭐ **Сумма:** {stars} Stars\n"
             f"🪙 **Выдано Coins:** {coins} Coins"
         )
         await bot.send_message(chat_id=ADMIN_ID, text=admin_msg, parse_mode="Markdown")
 
 async def main():
     await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())
 
 if __name__ == "__main__":
     import asyncio
